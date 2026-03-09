@@ -1,4 +1,17 @@
 polars
 pyarrow
 datasets
+pandas
+numpy
+scikit-learn
+torch
+transformers
+nltk
+textstat
+sentence-transformers
+bertopic
+vaderSentiment
+matplotlib
+seaborn
+tqdm
 
