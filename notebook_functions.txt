@@ -1,0 +1,83 @@
+--- notebooks\cleaning.ipynb ---
+def get_combined_embedding(text, model="text-embedding-3-small"):
+
+--- notebooks\data_visualisation.ipynb ---
+def plot_burstiness(df, title_suffix=""):
+def plot_contextual_pivot(df, embs):
+def plot_efficiency(df):
+def plot_24hr_heartbeat(df_ai, df_human):
+
+--- notebooks\data_visualisation_improved.ipynb ---
+def compute_deltas(df):
+def burstiness_coeff(delta):
+def compute_semantic_shifts(df, max_per_author=200, seed=42):
+def build_author_stats(df, group_label):
+
+--- notebooks\embedding.ipynb ---
+def prepare_text(text):
+
+--- notebooks\featuring_openaiembedding.ipynb ---
+def clean_text(text):
+def vocab_features(text):
+def stopword_ratio(text):
+def punctuation_density(text):
+def special_punct_counts(text):
+def parse_timestamp(ts):
+def pos_distribution(text):
+def ngram_repetition_rate(text, n=3):
+def hedging_score(text):
+def self_reference_rate(text):
+def formality_score(row):
+def compute_perplexity(text, max_length=512):
+def burstiness(text):
+def sentiment_features(text):
+def prepare_text(text):
+
+--- notebooks\mehmeh.ipynb ---
+def save_unsplit_features(df, embeddings, output_dir="../data", dataset_prefix="data"):
+
+--- notebooks\model.ipynb ---
+def train(model, dataloader, optimizer, device):
+def evaluate(model, dataloader, device):
+def training_loop(model, train_loader, val_loader, optimizer, early_stopping, num_epochs, device):
+def evaluate_on_testing_set(y_test, y_pred):
+
+--- notebooks\moltbook_regression_prep.ipynb ---
+def get_vader_compound(text):
+def get_early_comments(df_comments, post_id_col='post_id', time_col='created_at'):
+def engineer_comment_existence(df_early_comments, post_id_col='post_id'):
+def engineer_early_sentiment(df_early_comments, post_id_col='post_id', text_col='content'):
+def merge_engineered_features(df_posts, existence_df, sentiment_df, post_id_col_posts='id'):
+def truncate_text(text):
+def prepare_embedding_text(df, title_col='title', content_col='content'):
+def generate_and_save_embeddings(texts_to_embed, checkpoint_dir="./checkpoints", model="text-embedding-3-small"):
+def save_final_features(df, embeddings, output_dir="../data", dataset_prefix="data"):
+
+--- notebooks\preprocessing.ipynb ---
+def clean_text(text):
+
+--- notebooks\reddit_regression_prep.ipynb ---
+def get_vader_compound(text):
+def truncate_text(text):
+def generate_and_save_embeddings(texts_to_embed, checkpoint_dir="./checkpoints", model="text-embedding-3-small"):
+def save_final_features(df, embeddings, output_dir="../data", dataset_prefix="data"):
+def save_everything_to_pickle(df, embeddings, output_dir="../data", dataset_prefix="data"):
+def save_unsplit_features(df, embeddings, output_dir="../data", dataset_prefix="data"):
+def get_vader_compound(text):
+def get_vader_compound(text):
+def get_early_comments(df_comments, post_id_col='link_id', time_col='created_at'):
+def engineer_comment_existence(df_early_comments, post_id_col='link_id'):
+def engineer_early_sentiment(df_early_comments, post_id_col='link_id', text_col='body'):
+def truncate_text(text):
+def prepare_embedding_text(df, title_col='title', content_col='content'):
+def generate_and_save_embeddings(texts_to_embed, checkpoint_dir="./checkpoints", model="text-embedding-3-small"):
+def save_final_features(df, embeddings, output_dir="../data", dataset_prefix="data"):
+def get_vader_compound(text):
+def get_early_comments(df_comments, post_id_col='post_id', time_col='created_at'):
+def engineer_comment_existence(df_early_comments, post_id_col='post_id'):
+def engineer_early_sentiment(df_early_comments, post_id_col='post_id', text_col='content'):
+def merge_engineered_features(df_posts, existence_df, sentiment_df, post_id_col_posts='id'):
+
+--- notebooks\regression_model.ipynb ---
+def mean_absolute_percentage_error(y_true, y_pred):
+
