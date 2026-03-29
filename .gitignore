@@ -1,3 +1,9 @@
 .env
 /data
 /temp
+/ai_agent_sim/backend/routes/__pycache__
+/ai_agent_sim/backend/venv
+/src/__pycache__
+/venv
+/ai_agent_sim/node_modules
+/ai_agent_sim/backend/__pycache__

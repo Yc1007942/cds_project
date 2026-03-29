@@ -1,0 +1,11 @@
+fastapi==0.135.2
+uvicorn==0.42.0
+python-multipart==0.0.22
+pydantic==2.12.5
+sqlalchemy==2.0.48
+pymysql==1.1.2
+python-dotenv==1.2.2
+openai==2.30.0
+scikit-learn==1.8.0
+joblib==1.5.3
+numpy==2.4.3
