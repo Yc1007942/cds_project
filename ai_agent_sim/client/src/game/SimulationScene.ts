@@ -418,18 +418,19 @@ export class SimulationScene extends Phaser.Scene {
     }
 
     // Reposition agent home positions
-    const positions = [
-      { x: 100, y: 100 },
-      { x: width - 100, y: 100 },
-      { x: 100, y: height - 100 },
-      { x: width - 100, y: height - 100 },
-    ];
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = Math.min(width, height) / 2.8;
 
     this.agents.forEach((agent, i) => {
-      agent.homeX = positions[i].x;
-      agent.homeY = positions[i].y;
+      const angle = (i / this.agents.length) * Math.PI * 2;
+      const x = centerX + Math.cos(angle) * radius;
+      const y = centerY + Math.sin(angle) * radius;
+
+      agent.homeX = x;
+      agent.homeY = y;
       if (!this.isSimulating) {
-        agent.container.setPosition(positions[i].x, positions[i].y);
+        agent.container.setPosition(x, y);
       }
     });
   }
