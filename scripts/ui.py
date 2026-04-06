@@ -14,7 +14,7 @@ try:
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.cluster import KMeans
     from sklearn.decomposition import PCA
-    from sklearn.preprocessing import StandardScaler
+    from sklearn.preprocessing import Standa rdScaler
     SKLEARN_READY = True
 except ModuleNotFoundError as e:
     RandomForestClassifier = None
