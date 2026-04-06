@@ -70,6 +70,11 @@ class EngagementRegressor:
         return float(np.clip(base + random.uniform(-5, 15), 0, 100))
 
     def calculate_agents_to_spawn(self, score: float) -> int:
+        # The regressor appears to output a value between 0.0 and 1.0.
+        # If the score is <= 1.0, scale it up to 10.
+        # If the score is already > 1.0 (e.g. out of 100), divide by 10.
+        if score <= 1.0:
+            return max(0, min(int(round(score * 10)), 10))
         return max(0, min(int(score // 10), 10))
 
 
