@@ -160,3 +160,68 @@ def save_unsplit_features(df, embeddings, output_dir="../data", dataset_prefix="
         pickle.dump(X_full, f)
     print(f"Saved full un-split features shape: {X_full.shape} to {features_filename}")
     return df_pd
+
+def process_nested_post_features(post_data, get_vader_compound_func, max_early_comments=10):
+    """
+    Processes a nested post (either as a dict or a Pandas Series/Row).
+    Ensures the 'id' is always returned even if the comments array is empty.
+    """
+    # Handle both dict and Pandas Series/Row
+    if hasattr(post_data, 'get'):
+        comments = post_data.get('comments', [])
+        post_id = post_data.get('id')
+    else:
+        comments = post_data['comments'] if 'comments' in post_data else []
+        post_id = post_data['id'] if 'id' in post_data else None
+
+    # Default features for empty/missing comments
+    base_features = {
+        'id': post_id,
+        'comment_existence': 0.0,
+        'avg_early_sentiment': 0.0,
+        'max_early_sentiment': 0.0,
+        'min_early_sentiment': 0.0
+    }
+
+    if not isinstance(comments, list) or len(comments) == 0:
+        return base_features
+    
+    # 1. Sort and slice
+    try:
+        sorted_comments = sorted(comments, key=lambda x: pd.to_datetime(x.get('created_at', 0)))
+        early_comments = sorted_comments[:max_early_comments]
+        
+        # 2. Existence
+        existence = len(early_comments) / float(max_early_comments)
+        
+        # 3. Sentiment stats
+        scores = [get_vader_compound_func(str(c.get('content', ''))) for c in early_comments]
+        
+        base_features.update({
+            'comment_existence': existence,
+            'avg_early_sentiment': np.mean(scores),
+            'max_early_sentiment': np.max(scores),
+            'min_early_sentiment': np.min(scores)
+        })
+    except Exception as e:
+        print(f"Warning: Could not process comments for post {post_id}: {e}")
+        
+    return base_features
+
+def batch_process_nested_posts(posts_data, get_vader_compound_func, max_early_comments=10):
+    """
+    Processes a collection of nested posts. 
+    Accepts a list of dicts or a Pandas DataFrame.
+    """
+    if isinstance(posts_data, pd.DataFrame):
+        print(f"Batch processing DataFrame with {len(posts_data)} rows...")
+        feature_df = posts_data.apply(
+            lambda row: process_nested_post_features(row, get_vader_compound_func, max_early_comments),
+            axis=1,
+            result_type='expand'
+        )
+        return feature_df
+    
+    print(f"Batch processing list of {len(posts_data)} objects...")
+    all_features = [process_nested_post_features(p, get_vader_compound_func, max_early_comments) for p in posts_data]
+    return pd.DataFrame(all_features)

@@ -9,3 +9,8 @@ openai==2.30.0
 scikit-learn==1.8.0
 joblib==1.5.3
 numpy==2.4.3
+pandas==2.2.3
+nltk==3.9.1
+transformers==4.49.0
+torch==2.6.0
+vaderSentiment==3.3.2

@@ -1,23 +1,19 @@
 # From notebooks\cleaning.ipynb
-def get_combined_embedding(text, model="text-embedding-3-small"):
-    # Convert to string and clean
-    text = str(text).replace("\n", " ")
-    tokens = encoding.encode(text)
-
-    # If it fits in one go, just return the single embedding
-    if len(tokens) <= 8191:
-        return client.embeddings.create(input=[text], model=model).data[0].embedding
-
-    # If too long, split into chunks
-    chunks = [tokens[i : i + CHUNK_SIZE] for i in range(0, len(tokens), CHUNK_SIZE)]
-    chunk_strings = [encoding.decode(c) for c in chunks]
-
-    # Get embeddings for all chunks in one API call (batching)
-    response = client.embeddings.create(input=chunk_strings, model=model)
-    embeddings = [r.embedding for r in response.data]
-
-    # Average the vectors to get a single representative embedding
-    return np.mean(embeddings, axis=0).tolist()
+def get_combined_embedding(text, model_name='bert-base-uncased'):
+    """
+    Gets the embedding using SentenceTransformer (BERT-based).
+    """
+    from sentence_transformers import SentenceTransformer
+    import torch
+    
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    model_ST = SentenceTransformer(model_name, device=device)
+    
+    # Process text
+    text = str(text).replace("\n", " ").strip()
+    embedding = model_ST.encode(text)
+    
+    return embedding.tolist()
 
 # From notebooks\data_visualisation.ipynb
 def plot_burstiness(df, title_suffix=""):
@@ -656,12 +652,11 @@ def merge_engineered_features(df_posts, existence_df, sentiment_df, post_id_col_
     return df_merged
 
 # From notebooks\moltbook_regression_prep.ipynb
-def truncate_text(text):
-    MAX_TOKENS = 8191
-    text = str(text).replace("\n", " ")
-    tokens = encoding.encode(text, disallowed_special=())
-    if len(tokens) > MAX_TOKENS:
-        return encoding.decode(tokens[:MAX_TOKENS])
+def truncate_text(text, max_len=512):
+    """Simple truncation as a placeholder for BERT's 512-token limit."""
+    text = str(text).replace("\n", " ").strip()
+    if len(text.split()) > max_len:
+        return " ".join(text.split()[:max_len])
     return text
 
 
@@ -679,58 +674,32 @@ def prepare_embedding_text(df, title_col='title', content_col='content'):
 
     return df_prep
 
-# From notebooks\moltbook_regression_prep.ipynb
-def generate_and_save_embeddings(texts_to_embed, checkpoint_dir="./checkpoints", model="text-embedding-3-small"):
-    MAX_TOKENS_PER_REQUEST = 250000
-    MAX_ROWS_PER_REQUEST = 1000
-    TPM_LIMIT = 900000
-    SAVE_INTERVAL = 5000 
-
+def generate_and_save_embeddings(texts_to_embed, checkpoint_dir="./checkpoints", model_name="bert-base-uncased", batch_size=32):
+    """
+    Generates BERT embeddings using SentenceTransformer and saves them in chunks.
+    """
+    from sentence_transformers import SentenceTransformer
+    import torch
+    import os
+    import numpy as np
+    import glob
+    from tqdm import tqdm
+    
     os.makedirs(checkpoint_dir, exist_ok=True)
+    
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"Initializing model {model_name} on {device}...")
+    model_ST = SentenceTransformer(model_name, device=device)
 
-    # 1. Dynamic Batching
-    batches = []
-    current_batch = []
-    current_batch_tokens = 0
-
-    for text in texts_to_embed:
-        token_count = len(encoding.encode(text, disallowed_special=()))
-
-        if current_batch_tokens + token_count > MAX_TOKENS_PER_REQUEST or len(current_batch) >= MAX_ROWS_PER_REQUEST:
-            batches.append((current_batch, current_batch_tokens))
-            current_batch = []
-            current_batch_tokens = 0
-
-        current_batch.append(text)
-        current_batch_tokens += token_count
-
-    if current_batch:
-        batches.append((current_batch, current_batch_tokens))
-
-    print(f"Divided data into {len(batches)} dynamic batches.")
-
-    # 2. API Processing
+    SAVE_INTERVAL = 5000 
     current_chunk_embeddings = []
     chunk_index = 0
-    tokens_in_window = 0
-    window_start_time = time.time()
     processed_count = 0
 
-    for batch, batch_tokens in tqdm(batches, desc="Fetching Embeddings"):
-        if tokens_in_window + batch_tokens > TPM_LIMIT:
-            elapsed_time = time.time() - window_start_time
-            if elapsed_time < 60:
-                sleep_time = 60 - elapsed_time
-                print(f"  [Rate Limit Paused] Sleeping for {sleep_time:.2f} seconds...")
-                time.sleep(sleep_time)
-
-            tokens_in_window = 0
-            window_start_time = time.time()
-
-        response = client.embeddings.create(input=batch, model=model)
-
-        tokens_in_window += batch_tokens
-        batch_embeddings = [item.embedding for item in response.data]
+    print(f"Extracting BERT embeddings for {len(texts_to_embed)} items...")
+    for i in tqdm(range(0, len(texts_to_embed), batch_size), desc="Extracting"):
+        batch = [str(t) for t in texts_to_embed[i : i + batch_size]]
+        batch_embeddings = model_ST.encode(batch, show_progress_bar=False)
         current_chunk_embeddings.extend(batch_embeddings)
         processed_count += len(batch)
 
@@ -741,6 +710,8 @@ def generate_and_save_embeddings(texts_to_embed, checkpoint_dir="./checkpoints",
             np.save(filename, chunk_array)
             current_chunk_embeddings = []
             chunk_index += 1
+
+    # Merge Checkpoints (the rest of the function remains similar)
 
     # 3. Merge Checkpoints
     all_files = sorted(glob.glob(f"{checkpoint_dir}/embeddings_part_*.npy"), 
@@ -797,77 +768,16 @@ def get_vader_compound(text):
 
 
 # From notebooks\reddit_regression_prep.ipynb
-def truncate_text(text):
-    MAX_TOKENS = 8191
-    text = str(text).replace("\n", " ")
-    tokens = encoding.encode(text, disallowed_special=())
-    if len(tokens) > MAX_TOKENS:
-        return encoding.decode(tokens[:MAX_TOKENS])
+def truncate_text(text, max_len=512):
+    """Simple truncation as a placeholder for BERT's 512-token limit."""
+    text = str(text).replace("\n", " ").strip()
+    if len(text.split()) > max_len:
+        return " ".join(text.split()[:max_len])
     return text
 
 
 # From notebooks\reddit_regression_prep.ipynb
-def generate_and_save_embeddings(texts_to_embed, checkpoint_dir="./checkpoints", model="text-embedding-3-small"):
-    MAX_TOKENS_PER_REQUEST = 250000
-    MAX_ROWS_PER_REQUEST = 1000
-    TPM_LIMIT = 900000
-    SAVE_INTERVAL = 5000 
-
-    os.makedirs(checkpoint_dir, exist_ok=True)
-
-    # 1. Dynamic Batching
-    batches = []
-    current_batch = []
-    current_batch_tokens = 0
-
-    for text in texts_to_embed:
-        token_count = len(encoding.encode(text, disallowed_special=()))
-        if current_batch_tokens + token_count > MAX_TOKENS_PER_REQUEST or len(current_batch) >= MAX_ROWS_PER_REQUEST:
-            batches.append((current_batch, current_batch_tokens))
-            current_batch = []
-            current_batch_tokens = 0
-        current_batch.append(text)
-        current_batch_tokens += token_count
-
-    if current_batch:
-        batches.append((current_batch, current_batch_tokens))
-
-    print(f"Divided data into {len(batches)} dynamic batches.")
-
-    # 2. API Processing
-    current_chunk_embeddings = []
-    chunk_index = 0
-    tokens_in_window = 0
-    window_start_time = time.time()
-    processed_count = 0
-
-    for batch, batch_tokens in tqdm(batches, desc="Fetching Embeddings"):
-        if tokens_in_window + batch_tokens > TPM_LIMIT:
-            elapsed_time = time.time() - window_start_time
-            if elapsed_time < 60:
-                time.sleep(60 - elapsed_time)
-            tokens_in_window = 0
-            window_start_time = time.time()
-
-        response = client.embeddings.create(input=batch, model=model)
-        batch_embeddings = [item.embedding for item in response.data]
-        current_chunk_embeddings.extend(batch_embeddings)
-        processed_count += len(batch)
-
-        # Checkpoint Trigger
-        if len(current_chunk_embeddings) >= SAVE_INTERVAL or processed_count == len(texts_to_embed):
-            np.save(f"{checkpoint_dir}/embeddings_part_{chunk_index}.npy", np.array(current_chunk_embeddings))
-            current_chunk_embeddings = []
-            chunk_index += 1
-
-    # 3. Merge Checkpoints
-    all_files = sorted(glob.glob(f"{checkpoint_dir}/embeddings_part_*.npy"), 
-                       key=lambda x: int(x.split('_part_')[1].split('.npy')[0]))
-
-    embeddings = np.vstack([np.load(f) for f in all_files])
-    print(f"Final Embeddings shape: {embeddings.shape}")
-
-    return embeddings
+# generate_and_save_embeddings duplicate replaced by version on line 679
 
 
 # From notebooks\reddit_regression_prep.ipynb
@@ -985,12 +895,11 @@ def engineer_early_sentiment(df_early_comments, post_id_col='link_id', text_col=
     )
 
 # From notebooks\reddit_regression_prep.ipynb
-def truncate_text(text):
-    MAX_TOKENS = 8191
-    text = str(text).replace("\n", " ")
-    tokens = encoding.encode(text, disallowed_special=())
-    if len(tokens) > MAX_TOKENS:
-        return encoding.decode(tokens[:MAX_TOKENS])
+def truncate_text(text, max_len=512):
+    """Simple truncation as a placeholder for BERT's 512-token limit."""
+    text = str(text).replace("\n", " ").strip()
+    if len(text.split()) > max_len:
+        return " ".join(text.split()[:max_len])
     return text
 
 
@@ -1009,57 +918,32 @@ def prepare_embedding_text(df, title_col='title', content_col='content'):
     return df_prep
 
 # From notebooks\reddit_regression_prep.ipynb
-def generate_and_save_embeddings(texts_to_embed, checkpoint_dir="./checkpoints", model="text-embedding-3-small"):
-    MAX_TOKENS_PER_REQUEST = 250000
-    MAX_ROWS_PER_REQUEST = 1000
-    TPM_LIMIT = 900000
-    SAVE_INTERVAL = 5000 
-
+def generate_and_save_embeddings(texts_to_embed, checkpoint_dir="./checkpoints", model_name="bert-base-uncased", batch_size=32):
+    """
+    Generates BERT embeddings using SentenceTransformer and saves them in chunks.
+    """
+    from sentence_transformers import SentenceTransformer
+    import torch
+    import os
+    import numpy as np
+    import glob
+    from tqdm import tqdm
+    
     os.makedirs(checkpoint_dir, exist_ok=True)
+    
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(f"Initializing model {model_name} on {device}...")
+    model_ST = SentenceTransformer(model_name, device=device)
 
-    # 1. Dynamic Batching
-    batches = []
-    current_batch = []
-    current_batch_tokens = 0
-
-    for text in texts_to_embed:
-        token_count = len(encoding.encode(text, disallowed_special=()))
-
-        if current_batch_tokens + token_count > MAX_TOKENS_PER_REQUEST or len(current_batch) >= MAX_ROWS_PER_REQUEST:
-            batches.append((current_batch, current_batch_tokens))
-            current_batch = []
-            current_batch_tokens = 0
-
-        current_batch.append(text)
-        current_batch_tokens += token_count
-
-    if current_batch:
-        batches.append((current_batch, current_batch_tokens))
-
-    print(f"Divided data into {len(batches)} dynamic batches.")
-
-    # 2. API Processing
+    SAVE_INTERVAL = 5000 
     current_chunk_embeddings = []
     chunk_index = 0
-    tokens_in_window = 0
-    window_start_time = time.time()
     processed_count = 0
 
-    for batch, batch_tokens in tqdm(batches, desc="Fetching Embeddings"):
-        if tokens_in_window + batch_tokens > TPM_LIMIT:
-            elapsed_time = time.time() - window_start_time
-            if elapsed_time < 60:
-                sleep_time = 60 - elapsed_time
-                print(f"  [Rate Limit Paused] Sleeping for {sleep_time:.2f} seconds...")
-                time.sleep(sleep_time)
-
-            tokens_in_window = 0
-            window_start_time = time.time()
-
-        response = client.embeddings.create(input=batch, model=model)
-
-        tokens_in_window += batch_tokens
-        batch_embeddings = [item.embedding for item in response.data]
+    print(f"Extracting BERT embeddings for {len(texts_to_embed)} items...")
+    for i in tqdm(range(0, len(texts_to_embed), batch_size), desc="Extracting"):
+        batch = [str(t) for t in texts_to_embed[i : i + batch_size]]
+        batch_embeddings = model_ST.encode(batch, show_progress_bar=False)
         current_chunk_embeddings.extend(batch_embeddings)
         processed_count += len(batch)
 
@@ -1071,14 +955,16 @@ def generate_and_save_embeddings(texts_to_embed, checkpoint_dir="./checkpoints",
             current_chunk_embeddings = []
             chunk_index += 1
 
-    # 3. Merge Checkpoints
+    # Merge Checkpoints
     all_files = sorted(glob.glob(f"{checkpoint_dir}/embeddings_part_*.npy"), 
                        key=lambda x: int(x.split('_part_')[1].split('.npy')[0]))
 
-    embeddings = np.vstack([np.load(f) for f in all_files])
-    print(f"Final Embeddings shape: {embeddings.shape}")
-
-    return embeddings
+    if len(all_files) > 0:
+        embeddings = np.vstack([np.load(f) for f in all_files])
+        print(f"Final BERT Embeddings shape: {embeddings.shape}")
+        return embeddings
+    else:
+        return np.array([])
 
 
 

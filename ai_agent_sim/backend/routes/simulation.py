@@ -20,6 +20,7 @@ openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 class PostRequest(BaseModel):
     postText: str
     userId: Optional[int] = 1  # Default for testing
+    forum: Optional[str] = "technology"  # Options: technology, philosophy, todayilearned
 
 class SimulationResponse(BaseModel):
     id: int
@@ -32,7 +33,7 @@ class SimulationResponse(BaseModel):
 async def predict_score(request: PostRequest, db: Session = Depends(get_db)):
     """Predict engagement score for a post"""
     model = get_model()
-    score = model.predict_score(request.postText)
+    score = model.predict_score(request.postText, forum=request.forum)
     agents_to_spawn = model.calculate_agents_to_spawn(score)
     
     return {
@@ -47,7 +48,7 @@ async def start_simulation(request: PostRequest, db: Session = Depends(get_db)):
     try:
         # Predict score and determine agent count
         model = get_model()
-        predicted_score = model.predict_score(request.postText)
+        predicted_score = model.predict_score(request.postText, forum=request.forum)
         agents_to_spawn = model.calculate_agents_to_spawn(predicted_score)
         
         # Ensure we don't spawn more agents than available
@@ -78,10 +79,10 @@ async def start_simulation(request: PostRequest, db: Session = Depends(get_db)):
 async def get_responses(request: PostRequest, db: Session = Depends(get_db)):
     """Get AI agent responses for a post"""
     try:
-        # Predict score and determine agent count
+        # Initial Predict score and determine agent count
         model = get_model()
-        predicted_score = model.predict_score(request.postText)
-        agents_to_spawn = model.calculate_agents_to_spawn(predicted_score)
+        initial_score = model.predict_score(request.postText, forum=request.forum)
+        agents_to_spawn = model.calculate_agents_to_spawn(initial_score)
         agents_to_spawn = min(agents_to_spawn, len(AGENTS))
         
         # Get agents to respond
@@ -130,8 +131,12 @@ async def get_responses(request: PostRequest, db: Session = Depends(get_db)):
                     "response": f"[Error generating response: {str(e)[:50]}...]"
                 })
         
+        # RE-CALCULATE SCORE including the agent responses
+        updated_score = model.predict_score(request.postText, forum=request.forum, comments=responses)
+        
         return {
-            "predictedScore": round(predicted_score, 2),
+            "initialScore": round(initial_score, 2),
+            "predictedScore": round(updated_score, 2),
             "agentsSpawned": len(responses),
             "responses": responses
         }
