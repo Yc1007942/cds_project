@@ -1,3 +1,6 @@
 .env
 /data
 /temp
+/ai_agent_sim/node_modules
+/ai_agent_sim
+models/random_forest_model.joblib
