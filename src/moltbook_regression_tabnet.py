@@ -13,7 +13,7 @@ from pytorch_tabnet import TabNetRegressor
 # ==========================================
 # CONFIGURATION
 # ==========================================
-DATA_PATH = "../data/processed_v1_5_4_new_full.pkl"
+DATA_PATH = "../data/moltbook_with_keyword_features.pkl"
 EMBEDDING_COL = "embeddings"
 TARGET_COL = "score"
 RANDOM_STATE = 42
@@ -125,7 +125,9 @@ print(f"\nValidation R²: {r2_val:.4f}")
 print(f"Test R²: {r2_test:.4f}")
 
 # ==========================================
-# 4. Feature importancefrom sklearn.inspection import permutation_importance
+# 4. Feature importance
+# 
+from sklearn.inspection import permutation_importance
 
 # After training your model
 result = permutation_importance(

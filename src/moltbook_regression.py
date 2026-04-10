@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import joblib
 import os
 # 1. Load Moltbook Data
-moltbook = pd.read_pickle("../data/processed_v1_5_4_new_full.pkl")
+moltbook = pd.read_pickle("../data/moltbook_with_keyword_features.pkl")
 print(moltbook.head())
 print(moltbook.columns)
 # df = moltbook[['comment_existence', 'avg_early_sentiment',

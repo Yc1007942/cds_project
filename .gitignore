@@ -10,3 +10,5 @@
 /ai_agent_sim/.manus-logs
 /ai_agent_sim/.manus-logs
 /src/__pycache__
+/src/.pt_tmp
+/src/lightning_logs
