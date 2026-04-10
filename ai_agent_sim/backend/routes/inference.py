@@ -56,11 +56,9 @@ async def classify_text(req: InferenceRequest):
 @router.post("/score", response_model=RegressionResponse)
 async def predict_score(req: InferenceRequest):
     """Predict engagement score using the pre-trained regressor"""
-    extractor = get_extractor()
     regressor = get_regressor()
 
-    features_df = extractor.extract(req.text)
-    score = regressor.predict_score(features_df)
+    score = regressor.predict_score_from_text(req.text)
     agents = regressor.calculate_agents_to_spawn(score)
 
     return RegressionResponse(

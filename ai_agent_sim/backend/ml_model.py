@@ -5,6 +5,66 @@ import pandas as pd
 import re
 import warnings
 from pathlib import Path
+import sys
+import torch
+import nltk
+from datetime import datetime
+from typing import List, Optional, Union
+
+# Add project root to sys.path to allow importing from src
+backend_dir = Path(__file__).resolve().parent
+project_root = backend_dir.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.append(str(project_root))
+
+# Import requested functions from src
+try:
+    from src.data_prep import (
+        get_early_comments,
+        engineer_comment_existence,
+        engineer_early_sentiment,
+        merge_engineered_features,
+        save_final_features,
+        extract_hour_feature,
+        batch_process_nested_posts
+    )
+    from src.feature_engineering import (
+        get_vader_compound, 
+        sentiment_features, 
+        engineer_text_features,
+        vocab_features,
+        stopword_ratio,
+        punctuation_density,
+        burstiness,
+        hedging_score,
+        self_reference_rate
+    )
+    from src.embeddings import (
+        generate_and_save_embeddings, 
+        prepare_embedding_text,
+        get_bert_model_and_tokenizer,
+        get_bert_embedding
+    )
+    print("✅ Successfully imported functions from src")
+except ImportError as e:
+    print(f"⚠️ Error importing from src: {e}")
+
+# Ensure NLTK data is available
+def _setup_nltk():
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        nltk.download('punkt')
+    try:
+        nltk.data.find('corpora/stopwords')
+    except LookupError:
+        nltk.download('stopwords')
+    try:
+        nltk.data.find('taggers/averaged_perceptron_tagger')
+    except LookupError:
+        nltk.download('averaged_perceptron_tagger')
+
+_setup_nltk()
 
 warnings.filterwarnings('ignore')
 
@@ -29,6 +89,9 @@ class EngagementRegressor:
     def __init__(self):
         self.model = None
         self.feature_names = []
+        self.tokenizer = None
+        self.bert_model = None
+        self.device = None
         self._load()
 
     def _load(self):
@@ -44,6 +107,93 @@ class EngagementRegressor:
                 self.model = None
         else:
             print(f"⚠️ Regressor model not found at {MODEL_PATH}")
+
+    def _init_bert(self):
+        """Initialize BERT model and tokenizer if not already done"""
+        if self.tokenizer is None or self.bert_model is None:
+            print("📦 Initializing BERT (first time may take a while)...")
+            self.tokenizer, self.bert_model, self.device = get_bert_model_and_tokenizer()
+    
+    def _extract_text_features(self, post_text: str, forum: str = "technology", comments: List[Union[str, dict]] = None) -> np.ndarray:
+        """
+        Extract features from post text for model prediction.
+        Matches the 783 features expected by the model.
+        """
+        # 1. Comment Features (existence, avg_sentiment, max, min)
+        comment_existence = 0.0
+        avg_early_sentiment = 0.0
+        max_early_sentiment = 0.0
+        min_early_sentiment = 0.0
+        
+        if comments and len(comments) > 0:
+            comment_existence = min(len(comments) / 10.0, 1.0)
+            vader_scores = []
+            for c in comments:
+                content = c if isinstance(c, str) else c.get('response', '')
+                vader_scores.append(get_vader_compound(content))
+            
+            if vader_scores:
+                avg_early_sentiment = np.mean(vader_scores)
+                max_early_sentiment = np.max(vader_scores)
+                min_early_sentiment = np.min(vader_scores)
+        
+        # 2. Time Feature
+        current_hour = datetime.now().hour
+        
+        # 3. Text Statistics
+        ttr, hapax = vocab_features(post_text)
+        sw_ratio = stopword_ratio(post_text)
+        burst = burstiness(post_text)
+        punct_density = punctuation_density(post_text)
+        hedge_score = hedging_score(post_text)
+        self_ref_rate = self_reference_rate(post_text)
+        
+        # 4. Forum One-Hot
+        forum_philosophy = 1.0 if forum.lower() == "philosophy" else 0.0
+        forum_technology = 1.0 if forum.lower() == "technology" else 0.0
+        forum_todayilearned = 1.0 if forum.lower() == "todayilearned" else 0.0
+        
+        # 5. BERT Embeddings
+        self._init_bert()
+        embedding = get_bert_embedding(post_text, self.tokenizer, self.bert_model, self.device)
+        
+        feature_vector = [
+            comment_existence,
+            avg_early_sentiment,
+            max_early_sentiment,
+            min_early_sentiment,
+            float(current_hour),
+            ttr,
+            hapax,
+            sw_ratio,
+            burst,
+            punct_density,
+            hedge_score,
+            self_ref_rate,
+            forum_philosophy,
+            forum_technology,
+            forum_todayilearned
+        ]
+        feature_vector.extend(embedding)
+        return np.array(feature_vector).reshape(1, -1)
+    
+    def predict_score_from_text(self, post_text: str, forum: str = "technology", comments: List[Union[str, dict]] = None) -> float:
+        """
+        Predict the engagement score directly from a post text (0-100)
+        """
+        if self.model is None or not post_text:
+            return 50.0  # Safe fallback score
+        
+        try:
+            X = self._extract_text_features(post_text, forum, comments)
+            score = self.model.predict(X)[0]
+            print(f"🔮 Predicted score for '{post_text[:20]}...': {score:.2f}")
+            return float(np.clip(score, 0, 100))
+        except Exception as e:
+            print(f"⚠️ Prediction error: {e}. Falling back to placeholder.")
+            import traceback
+            traceback.print_exc()
+            return 50.0
 
     def predict_score(self, features_df: pd.DataFrame) -> float:
         """Predict engagement score from a feature DataFrame"""
@@ -73,7 +223,7 @@ class EngagementRegressor:
         # The regressor appears to output a value between 0.0 and 1.0.
         # If the score is <= 1.0, scale it up to 10.
         # If the score is already > 1.0 (e.g. out of 100), divide by 10.
-        if score <= 1.0:
+        if score <= 1.02:
             return max(0, min(int(round(score * 10)), 10))
         return max(0, min(int(score // 10), 10))
 

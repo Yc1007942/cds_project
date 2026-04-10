@@ -27,11 +27,9 @@ class PostRequest(BaseModel):
 @router.post("/predict-score")
 async def predict_score(request: PostRequest):
     """Predict engagement score for a post"""
-    extractor = get_extractor()
     regressor = get_regressor()
 
-    features_df = extractor.extract(request.postText)
-    score = regressor.predict_score(features_df)
+    score = regressor.predict_score_from_text(request.postText)
     agents_to_spawn = regressor.calculate_agents_to_spawn(score)
 
     return {
@@ -45,11 +43,9 @@ async def predict_score(request: PostRequest):
 async def get_responses(request: PostRequest):
     """Get AI agent responses for a post"""
     try:
-        extractor = get_extractor()
         regressor = get_regressor()
 
-        features_df = extractor.extract(request.postText)
-        predicted_score = regressor.predict_score(features_df)
+        predicted_score = regressor.predict_score_from_text(request.postText)
         agents_to_spawn = regressor.calculate_agents_to_spawn(predicted_score)
         agents_to_spawn = min(agents_to_spawn, len(AGENTS))
 
@@ -84,8 +80,11 @@ async def get_responses(request: PostRequest):
                 "response": agent_response
             })
 
+        # Re-evaluate sentiment with generated responses
+        updated_score = regressor.predict_score_from_text(request.postText, comments=responses)
+
         return {
-            "predictedScore": round(predicted_score, 2),
+            "predictedScore": round(updated_score, 2),
             "agentsSpawned": len(responses),
             "responses": responses
         }
