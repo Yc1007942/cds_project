@@ -9,6 +9,7 @@ import Home from "./pages/Home";
 import DataExplorer from "./pages/DataExplorer";
 import FeatureMatrix from "./pages/FeatureMatrix";
 import InferenceCore from "./pages/InferenceCore";
+import GraphsFindings from "./pages/GraphsFindings";
 
 function Router() {
   return (
@@ -17,6 +18,7 @@ function Router() {
       <Route path={"/data-explorer"} component={DataExplorer} />
       <Route path={"/feature-matrix"} component={FeatureMatrix} />
       <Route path={"/inference"} component={InferenceCore} />
+      <Route path={"/graphs-findings"} component={GraphsFindings} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

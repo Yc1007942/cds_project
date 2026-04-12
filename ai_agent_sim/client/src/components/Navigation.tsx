@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Zap, Database, BarChart3, Brain, Menu, X } from "lucide-react";
+import { Zap, Database, BarChart3, Brain, Menu, X, LineChart } from "lucide-react";
 import { useState } from "react";
 
 const NAV_ITEMS = [
@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { path: "/data-explorer", label: "Data Explorer", icon: Database, shortLabel: "02" },
   { path: "/feature-matrix", label: "Feature Matrix", icon: BarChart3, shortLabel: "03" },
   { path: "/inference", label: "Inference Core", icon: Brain, shortLabel: "04" },
+  { path: "/graphs-findings", label: "Graphs & Findings", icon: LineChart, shortLabel: "05" },
 ];
 
 export default function Navigation() {
