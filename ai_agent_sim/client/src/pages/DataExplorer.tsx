@@ -335,7 +335,7 @@ export default function DataExplorer() {
           </ChartCard>
         </div> */}
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        {/* <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <ChartCard
             title="SCORE_DISTRIBUTION"
             loading={visualLoading}
@@ -397,8 +397,8 @@ export default function DataExplorer() {
               </BarChart>
             </ResponsiveContainer>
           </ChartCard>
-        </div>
-
+        </div> */}
+{/* 
         <ChartCard
           title="MEAN_SIGNAL_COMPARISON"
           loading={visualLoading}
@@ -423,7 +423,7 @@ export default function DataExplorer() {
               <Bar dataKey="ai" name="AI_AVG" fill="#3be3ff" fillOpacity={0.8} />
             </BarChart>
           </ResponsiveContainer>
-        </ChartCard>
+        </ChartCard> */}
 
         <Card className="border-[rgba(59,227,255,0.2)] bg-[rgba(8,14,28,0.7)] p-5">
           <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
