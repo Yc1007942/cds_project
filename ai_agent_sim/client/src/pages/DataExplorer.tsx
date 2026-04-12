@@ -18,9 +18,8 @@ export default function DataExplorer() {
   const [scatterData, setScatterData] = useState<any[]>([]);
 
   // Filters
-  const [wordRange, setWordRange] = useState<[number, number]>([0, 2000]);
-  const [selectedSubs, setSelectedSubs] = useState<string[]>([]);
-  const [keyword, setKeyword] = useState("");
+  const [scoreRange, setScoreRange] = useState<[number, number]>([0, 100]);
+  const [selectedLabel, setSelectedLabel] = useState<number | null>(null);
   const [maxRows, setMaxRows] = useState(300);
 
   useEffect(() => {
@@ -31,12 +30,12 @@ export default function DataExplorer() {
     try {
       const [statsData, scatterRes] = await Promise.all([
         api.getDataStats(),
-        api.getScatterData("word_count", "char_count", 1200),
+        api.getScatterData("score", "burstiness", 1200),
       ]);
       setStats(statsData);
       setScatterData(scatterRes.points);
       // initial table load
-      await loadTable(0, 2000, "", "", 300);
+      await loadTable(0, 100, null, 300);
     } catch (err) {
       console.error("Data load error:", err);
     } finally {
@@ -44,16 +43,25 @@ export default function DataExplorer() {
     }
   }
 
-  async function loadTable(wMin: number, wMax: number, subs: string, kw: string, limit: number) {
+  async function loadTable(sMin: number, sMax: number, label: number | null, limit: number) {
     setTableLoading(true);
     try {
-      const res = await api.getExploreData({
-        word_min: wMin,
-        word_max: wMax,
-        subreddits: subs || undefined,
-        keyword: kw || undefined,
+      const params: any = {
         limit,
-      });
+      };
+      if (sMin > 0) params.score_min = sMin;
+      if (sMax < 999999) params.score_max = sMax;
+      if (label !== null) params.label = label;
+      
+      const qs = new URLSearchParams();
+      if (params.score_min !== undefined) qs.set("score_min", String(params.score_min));
+      if (params.score_max !== undefined) qs.set("score_max", String(params.score_max));
+      if (params.label !== undefined) qs.set("label", String(params.label));
+      if (params.limit) qs.set("limit", String(params.limit));
+
+      const r = await fetch(`http://localhost:8000/api/data/explore?${qs}`);
+      if (!r.ok) throw new Error("Failed to load data");
+      const res = await r.json();
       setRows(res.rows);
       setTotalFiltered(res.total_filtered);
     } catch (err) {
@@ -64,7 +72,7 @@ export default function DataExplorer() {
   }
 
   function handleFilter() {
-    loadTable(wordRange[0], wordRange[1], selectedSubs.join(","), keyword, maxRows);
+    loadTable(scoreRange[0], scoreRange[1], selectedLabel, maxRows);
   }
 
   function handleExportCSV() {
@@ -118,32 +126,34 @@ export default function DataExplorer() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
-              <label className="text-[10px] text-[#a8ebff] tracking-wider block mb-1.5 uppercase">WORD_COUNT_MIN</label>
+              <label className="text-[10px] text-[#a8ebff] tracking-wider block mb-1.5 uppercase">SCORE_MIN</label>
               <input
                 type="number"
-                value={wordRange[0]}
-                onChange={(e) => setWordRange([Number(e.target.value), wordRange[1]])}
+                value={scoreRange[0]}
+                onChange={(e) => setScoreRange([Number(e.target.value), scoreRange[1]])}
                 className="w-full bg-[rgba(4,10,20,0.8)] border border-[rgba(59,227,255,0.2)] rounded-lg px-3 py-2 text-sm text-[#d9f7ff] focus:outline-none focus:border-[#3be3ff]"
               />
             </div>
             <div>
-              <label className="text-[10px] text-[#a8ebff] tracking-wider block mb-1.5 uppercase">WORD_COUNT_MAX</label>
+              <label className="text-[10px] text-[#a8ebff] tracking-wider block mb-1.5 uppercase">SCORE_MAX</label>
               <input
                 type="number"
-                value={wordRange[1]}
-                onChange={(e) => setWordRange([wordRange[0], Number(e.target.value)])}
+                value={scoreRange[1]}
+                onChange={(e) => setScoreRange([scoreRange[0], Number(e.target.value)])}
                 className="w-full bg-[rgba(4,10,20,0.8)] border border-[rgba(59,227,255,0.2)] rounded-lg px-3 py-2 text-sm text-[#d9f7ff] focus:outline-none focus:border-[#3be3ff]"
               />
             </div>
             <div>
-              <label className="text-[10px] text-[#a8ebff] tracking-wider block mb-1.5 uppercase">SEARCH_PAYLOAD</label>
-              <input
-                type="text"
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                placeholder="author/text contains..."
-                className="w-full bg-[rgba(4,10,20,0.8)] border border-[rgba(59,227,255,0.2)] rounded-lg px-3 py-2 text-sm text-[#d9f7ff] placeholder:text-[#5a8899] focus:outline-none focus:border-[#3be3ff]"
-              />
+              <label className="text-[10px] text-[#a8ebff] tracking-wider block mb-1.5 uppercase">LABEL_FILTER</label>
+              <select
+                value={selectedLabel === null ? "all" : String(selectedLabel)}
+                onChange={(e) => setSelectedLabel(e.target.value === "all" ? null : Number(e.target.value))}
+                className="w-full bg-[rgba(4,10,20,0.8)] border border-[rgba(59,227,255,0.2)] rounded-lg px-3 py-2 text-sm text-[#d9f7ff] focus:outline-none focus:border-[#3be3ff]"
+              >
+                <option value="all">ALL</option>
+                <option value="0">HUMAN (0)</option>
+                <option value="1">AI (1)</option>
+              </select>
             </div>
             <div className="flex items-end gap-2">
               <Button
@@ -160,13 +170,13 @@ export default function DataExplorer() {
         {/* Scatter Chart */}
         <Card className="border-[rgba(59,227,255,0.2)] bg-[rgba(8,14,28,0.7)] p-5">
           <h2 className="text-sm font-bold tracking-wider text-[#77f7ff] mb-4 uppercase">
-            &gt;&gt; TRAFFIC SCAN // WORD_COUNT × CHAR_COUNT
+            &gt;&gt; TRAFFIC SCAN // SCORE × BURSTINESS
           </h2>
           <ResponsiveContainer width="100%" height={400}>
             <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 10 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,227,255,0.1)" />
-              <XAxis dataKey="word_count" type="number" name="Word Count" stroke="#8cb8cc" tick={{ fill: "#8cb8cc", fontSize: 11 }} />
-              <YAxis dataKey="char_count" type="number" name="Char Count" stroke="#8cb8cc" tick={{ fill: "#8cb8cc", fontSize: 11 }} />
+              <XAxis dataKey="score" type="number" name="Score" stroke="#8cb8cc" tick={{ fill: "#8cb8cc", fontSize: 11 }} />
+              <YAxis dataKey="burstiness" type="number" name="Burstiness" stroke="#8cb8cc" tick={{ fill: "#8cb8cc", fontSize: 11 }} />
               <Tooltip
                 contentStyle={{ backgroundColor: "rgba(8,14,28,0.95)", border: "1px solid rgba(59,227,255,0.3)", borderRadius: 8, color: "#d9f7ff", fontSize: 12 }}
               />

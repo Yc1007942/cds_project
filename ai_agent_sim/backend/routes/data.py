@@ -10,17 +10,16 @@ from ml_model import get_features_df, get_feature_matrix_df
 
 router = APIRouter()
 
-# Features safe to expose for visualization
-DISPLAY_COLS = ['author', 'text', 'subreddit', 'label', 'word_count', 'char_count',
-                'sentiment_compound', 'perplexity', 'burstiness', 'ttr']
+# Features available in the new combined CSV
+DISPLAY_COLS = ['score', 'comment_existence', 'avg_early_sentiment', 'max_early_sentiment',
+                'min_early_sentiment', 'hour', 'ttr', 'hapax', 'stopword_ratio',
+                'burstiness', 'punctuation_density', 'hedging_score', 'self_reference_rate',
+                'forum_philosophy', 'forum_technology', 'forum_todayilearned', 'label']
 
-PLOT_FEATURES = ['word_count', 'char_count', 'sentence_count', 'avg_word_length',
-                 'avg_sentence_length', 'flesch_kincaid', 'gunning_fog', 'coleman_liau',
-                 'automated_readability', 'ttr', 'hapax_ratio', 'stopword_ratio',
-                 'punctuation_density', 'exclamation_count', 'question_count',
-                 'perplexity', 'burstiness', 'sentiment_compound', 'sentiment_pos',
-                 'sentiment_neg', 'sentiment_neu', 'sentiment_variability',
-                 'formality_score', 'self_reference_rate']
+PLOT_FEATURES = ['score', 'comment_existence', 'avg_early_sentiment', 'max_early_sentiment',
+                 'min_early_sentiment', 'hour', 'ttr', 'hapax', 'stopword_ratio',
+                 'burstiness', 'punctuation_density', 'hedging_score', 'self_reference_rate',
+                 'forum_philosophy', 'forum_technology', 'forum_todayilearned']
 
 
 @router.get("/stats")
@@ -28,14 +27,14 @@ async def get_stats():
     """Dataset summary metrics"""
     df = get_features_df()
     if df.empty:
-        return {"total": 0, "ai_count": 0, "human_count": 0, "columns": []}
+        return {"total": 0, "ai_count": 0, "human_count": 0, "columns": [], "subreddits": []}
 
     return {
         "total": len(df),
         "ai_count": int((df['label'] == 1).sum()),
         "human_count": int((df['label'] == 0).sum()),
-        "columns": [c for c in df.columns if c not in ['text', 'text_clean']],
-        "subreddits": sorted(df['subreddit'].dropna().unique().tolist()) if 'subreddit' in df.columns else [],
+        "columns": [c for c in df.columns],
+        "subreddits": [],  # No subreddit column in new CSV
     }
 
 
@@ -49,10 +48,9 @@ async def get_feature_list():
 
 @router.get("/explore")
 async def get_explore_data(
-    word_min: int = 0,
-    word_max: int = 999999,
-    subreddits: Optional[str] = None,
-    keyword: Optional[str] = None,
+    score_min: float = 0,
+    score_max: float = 999999,
+    label: Optional[int] = None,
     limit: int = 300,
     offset: int = 0,
 ):
@@ -61,18 +59,10 @@ async def get_explore_data(
     if df.empty:
         return {"rows": [], "total_filtered": 0}
 
-    mask = (df['word_count'] >= word_min) & (df['word_count'] <= word_max)
+    mask = (df['score'] >= score_min) & (df['score'] <= score_max)
 
-    if subreddits and 'subreddit' in df.columns:
-        sub_list = [s.strip() for s in subreddits.split(',') if s.strip()]
-        if sub_list:
-            mask &= df['subreddit'].isin(sub_list)
-
-    if keyword:
-        kw = keyword.lower()
-        text_match = df['text'].fillna('').str.lower().str.contains(kw, regex=False) if 'text' in df.columns else pd.Series(False, index=df.index)
-        author_match = df['author'].fillna('').str.lower().str.contains(kw, regex=False) if 'author' in df.columns else pd.Series(False, index=df.index)
-        mask &= (text_match | author_match)
+    if label is not None:
+        mask &= (df['label'] == label)
 
     filtered = df[mask]
     total = len(filtered)
@@ -80,19 +70,14 @@ async def get_explore_data(
     cols = [c for c in DISPLAY_COLS if c in filtered.columns]
     page = filtered[cols].iloc[offset:offset + limit]
 
-    # Truncate text for transport
-    if 'text' in page.columns:
-        page = page.copy()
-        page['text'] = page['text'].str[:200]
-
-    rows = page.fillna('').to_dict(orient='records')
+    rows = page.fillna(0).to_dict(orient='records')
     return {"rows": rows, "total_filtered": total}
 
 
 @router.get("/scatter")
 async def get_scatter_data(
-    x: str = "word_count",
-    y: str = "char_count",
+    x: str = "score",
+    y: str = "burstiness",
     sample: int = 1200,
 ):
     """Sampled scatter plot data"""
@@ -102,8 +87,7 @@ async def get_scatter_data(
 
     sampled = df.sample(min(sample, len(df)), random_state=42)
     cols = [x, y, 'label']
-    extra = ['author', 'subreddit']
-    cols += [c for c in extra if c in sampled.columns]
+    cols = [c for c in cols if c in sampled.columns]
 
     points = sampled[cols].fillna(0).to_dict(orient='records')
     return {"points": points, "x_col": x, "y_col": y}
@@ -230,7 +214,7 @@ async def get_feature_stats():
     if df.empty:
         return {"human": {}, "ai": {}}
 
-    radar_features = ['word_count', 'char_count', 'perplexity', 'burstiness', 'sentiment_compound']
+    radar_features = ['score', 'burstiness', 'ttr', 'hedging_score', 'self_reference_rate']
     available = [f for f in radar_features if f in df.columns]
 
     def group_means(label_val):

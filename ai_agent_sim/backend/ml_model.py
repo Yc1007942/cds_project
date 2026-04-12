@@ -71,8 +71,11 @@ warnings.filterwarnings('ignore')
 # Paths relative to backend/ directory
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent  # moltnet/
 MODEL_PATH = PROJECT_ROOT / "models" / "random_forest_model.joblib"
-FEATURE_MATRIX_PATH = PROJECT_ROOT / "data" / "feature_matrix_full_subset_train.parquet"
-FEATURES_PATH = PROJECT_ROOT / "data" / "features_subset_train.parquet"
+BERT_CLASSIFIER_PATH = PROJECT_ROOT / "models" / "bert_classification_model_complete-20260410T155433Z-3-001" / "bert_classification_model_complete"
+COMBINED_CSV_PATH = PROJECT_ROOT / "data" / "moltbook_reddit_combined10_4.csv"
+# Legacy paths (kept for reference)
+FEATURE_MATRIX_PATH = COMBINED_CSV_PATH
+FEATURES_PATH = COMBINED_CSV_PATH
 
 # Columns to exclude from training features
 NON_FEATURE_COLS = {
@@ -228,53 +231,61 @@ class EngagementRegressor:
         return max(0, min(int(score // 10), 10))
 
 
-class ClassificationModel:
-    """RandomForestClassifier for AI vs Human detection"""
+class BertClassificationModel:
+    """BERT fine-tuned classifier for AI vs Human detection"""
 
     def __init__(self):
         self.model = None
-        self.feature_names = []
-        self._train()
+        self.tokenizer = None
+        self.device = None
+        self.feature_names = []  # kept for API compat (model-info endpoint)
+        self._load()
 
-    def _train(self):
-        """Train classifier from feature matrix parquet"""
-        if not FEATURE_MATRIX_PATH.exists():
-            print(f"⚠️ Feature matrix not found at {FEATURE_MATRIX_PATH}")
+    def _load(self):
+        """Load the fine-tuned BertForSequenceClassification model"""
+        if not BERT_CLASSIFIER_PATH.exists():
+            print(f"⚠️ BERT classifier not found at {BERT_CLASSIFIER_PATH}")
             return
 
         try:
-            from sklearn.ensemble import RandomForestClassifier
+            from transformers import BertForSequenceClassification, BertTokenizer
 
-            df = pd.read_parquet(str(FEATURE_MATRIX_PATH))
-            features = [c for c in df.columns if c not in NON_FEATURE_COLS]
-            X = df[features].select_dtypes(include=[np.number]).fillna(0)
-            y = df['label']
-
-            self.feature_names = X.columns.tolist()
-            self.model = RandomForestClassifier(
-                n_estimators=50, random_state=42, max_depth=10, n_jobs=-1
-            )
-            self.model.fit(X, y)
-            print(f"✅ Trained classifier: {len(self.feature_names)} features, {len(X)} samples")
+            self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+            self.model = BertForSequenceClassification.from_pretrained(
+                str(BERT_CLASSIFIER_PATH),
+                num_labels=2
+            ).to(self.device)
+            self.model.eval()
+            print(f"✅ Loaded BERT classifier from {BERT_CLASSIFIER_PATH} on {self.device}")
         except Exception as e:
-            print(f"⚠️ Failed to train classifier: {e}")
+            print(f"⚠️ Failed to load BERT classifier: {e}")
+            import traceback
+            traceback.print_exc()
             self.model = None
 
-    def predict(self, features_df: pd.DataFrame) -> dict:
-        """Classify text as AI or Human"""
-        if self.model is None:
-            return {"label": "unknown", "confidence": 0.0, "ai_prob": 0.5, "human_prob": 0.5}
+    def predict(self, text: str) -> dict:
+        """Classify text as AI or Human using BERT"""
+        if self.model is None or self.tokenizer is None:
+            return {"label": "unknown", "prediction": -1, "confidence": 0.0, "ai_prob": 0.5, "human_prob": 0.5}
 
         try:
-            X = pd.DataFrame(columns=self.feature_names)
-            for col in self.feature_names:
-                X[col] = features_df[col].values if col in features_df.columns else 0.0
-            X = X.fillna(0).astype(float)
+            inputs = self.tokenizer(
+                text,
+                return_tensors='pt',
+                truncation=True,
+                max_length=512,
+                padding=True
+            ).to(self.device)
 
-            prediction = int(self.model.predict(X)[0])
-            proba = self.model.predict_proba(X)[0]
-            ai_prob = float(proba[1]) if len(proba) > 1 else 0.0
-            human_prob = float(proba[0])
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+                logits = outputs.logits
+                probs = torch.nn.functional.softmax(logits, dim=-1)[0]
+
+            human_prob = float(probs[0])
+            ai_prob = float(probs[1])
+            prediction = 1 if ai_prob > human_prob else 0
 
             return {
                 "label": "AI" if prediction == 1 else "HUMAN",
@@ -284,8 +295,10 @@ class ClassificationModel:
                 "human_prob": human_prob,
             }
         except Exception as e:
-            print(f"⚠️ Classification error: {e}")
-            return {"label": "unknown", "confidence": 0.0, "ai_prob": 0.5, "human_prob": 0.5}
+            print(f"⚠️ BERT classification error: {e}")
+            import traceback
+            traceback.print_exc()
+            return {"label": "unknown", "prediction": -1, "confidence": 0.0, "ai_prob": 0.5, "human_prob": 0.5}
 
 
 class FeatureExtractor:
@@ -413,10 +426,10 @@ def get_regressor() -> EngagementRegressor:
     return _regressor
 
 
-def get_classifier() -> ClassificationModel:
+def get_classifier() -> BertClassificationModel:
     global _classifier
     if _classifier is None:
-        _classifier = ClassificationModel()
+        _classifier = BertClassificationModel()
     return _classifier
 
 
@@ -428,26 +441,26 @@ def get_extractor() -> FeatureExtractor:
 
 
 def get_features_df() -> pd.DataFrame:
-    """Load and cache the features dataset"""
+    """Load and cache the features dataset (CSV)"""
     global _features_df
     if _features_df is None:
-        if FEATURES_PATH.exists():
-            _features_df = pd.read_parquet(str(FEATURES_PATH))
-            print(f"✅ Loaded features data: {_features_df.shape}")
+        if COMBINED_CSV_PATH.exists():
+            _features_df = pd.read_csv(str(COMBINED_CSV_PATH))
+            print(f"✅ Loaded features data from CSV: {_features_df.shape}")
         else:
-            print(f"⚠️ Features data not found at {FEATURES_PATH}")
+            print(f"⚠️ Features CSV not found at {COMBINED_CSV_PATH}")
             _features_df = pd.DataFrame()
     return _features_df
 
 
 def get_feature_matrix_df() -> pd.DataFrame:
-    """Load and cache the feature matrix"""
+    """Load and cache the feature matrix (CSV)"""
     global _feature_matrix_df
     if _feature_matrix_df is None:
-        if FEATURE_MATRIX_PATH.exists():
-            _feature_matrix_df = pd.read_parquet(str(FEATURE_MATRIX_PATH))
-            print(f"✅ Loaded feature matrix: {_feature_matrix_df.shape}")
+        if COMBINED_CSV_PATH.exists():
+            _feature_matrix_df = pd.read_csv(str(COMBINED_CSV_PATH))
+            print(f"✅ Loaded feature matrix from CSV: {_feature_matrix_df.shape}")
         else:
-            print(f"⚠️ Feature matrix not found at {FEATURE_MATRIX_PATH}")
+            print(f"⚠️ Feature matrix CSV not found at {COMBINED_CSV_PATH}")
             _feature_matrix_df = pd.DataFrame()
     return _feature_matrix_df

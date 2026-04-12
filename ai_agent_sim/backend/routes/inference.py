@@ -34,12 +34,10 @@ class RegressionResponse(BaseModel):
 
 @router.post("/classify", response_model=ClassificationResponse)
 async def classify_text(req: InferenceRequest):
-    """Classify text as AI-generated or Human-written"""
-    extractor = get_extractor()
+    """Classify text as AI-generated or Human-written using BERT"""
     classifier = get_classifier()
 
-    features_df = extractor.extract(req.text)
-    result = classifier.predict(features_df)
+    result = classifier.predict(req.text)
 
     return ClassificationResponse(
         label=result["label"],
@@ -49,7 +47,7 @@ async def classify_text(req: InferenceRequest):
         human_prob=result["human_prob"],
         word_count=len(req.text.split()),
         char_count=len(req.text),
-        features_used=len(classifier.feature_names),
+        features_used=768,  # BERT hidden size
     )
 
 
@@ -78,14 +76,14 @@ async def model_info():
     return {
         "classifier": {
             "loaded": classifier.model is not None,
-            "features": len(classifier.feature_names),
-            "type": type(classifier.model).__name__ if classifier.model else None,
+            "features": 768,  # BERT hidden dimension
+            "type": "BertForSequenceClassification" if classifier.model else None,
         },
         "regressor": {
             "loaded": regressor.model is not None,
-            "features": len(regressor.feature_names),
+            "features": len(regressor.feature_names) if regressor.feature_names else 783,
             "type": type(regressor.model).__name__ if regressor.model else None,
-            "n_estimators": regressor.model.n_estimators if regressor.model else None,
+            "n_estimators": regressor.model.n_estimators if regressor.model and hasattr(regressor.model, 'n_estimators') else None,
         },
     }
 

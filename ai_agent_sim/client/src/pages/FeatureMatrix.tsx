@@ -11,7 +11,7 @@ const CLUSTER_COLORS = ["#3be3ff", "#67ff9f", "#ff6fa8", "#fbbf24", "#a78bfa", "
 
 export default function FeatureMatrix() {
   const [features, setFeatures] = useState<string[]>([]);
-  const [selectedFeature, setSelectedFeature] = useState("word_count");
+  const [selectedFeature, setSelectedFeature] = useState("score");
   const [distData, setDistData] = useState<api.DistBin[]>([]);
   const [boxHuman, setBoxHuman] = useState<api.BoxStats | null>(null);
   const [boxAi, setBoxAi] = useState<api.BoxStats | null>(null);
@@ -21,8 +21,8 @@ export default function FeatureMatrix() {
   const [clusterData, setClusterData] = useState<api.ClusterPoint[]>([]);
   const [clusterVariance, setClusterVariance] = useState(0);
   const [nClusters, setNClusters] = useState(5);
-  const [scatterX, setScatterX] = useState("word_count");
-  const [scatterY, setScatterY] = useState("perplexity");
+  const [scatterX, setScatterX] = useState("score");
+  const [scatterY, setScatterY] = useState("burstiness");
   const [scatterData, setScatterData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
