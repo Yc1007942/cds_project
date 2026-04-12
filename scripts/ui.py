@@ -571,19 +571,19 @@ if page == "[01] DATA_EXPLORER":
             sample_n = min(1200, len(filtered_df))
             viz_df = filtered_df.sample(sample_n, random_state=42) if len(filtered_df) > sample_n else filtered_df
             viz_df = viz_df.assign(class_name=viz_df['label'].replace({0: 'HUMAN', 1: 'AI'}))
-            fig_scan = px.scatter(
-                viz_df,
-                x='word_count',
-                y='char_count',
-                color='class_name',
-                size='word_count',
-                hover_data=['author'] if 'author' in viz_df.columns else None,
-                color_discrete_map={'HUMAN': '#67ff9f', 'AI': '#3be3ff'},
-                opacity=0.72,
-                title="TRAFFIC SCAN // WORD_COUNT x CHAR_COUNT",
-            )
-            fig_scan.update_layout(**plotly_layout)
-            st.plotly_chart(fig_scan, use_container_width=True)
+            # fig_scan = px.scatter(
+            #     viz_df,
+            #     x='word_count',
+            #     y='char_count',
+            #     color='class_name',
+            #     size='word_count',
+            #     hover_data=['author'] if 'author' in viz_df.columns else None,
+            #     color_discrete_map={'HUMAN': '#67ff9f', 'AI': '#3be3ff'},
+            #     opacity=0.72,
+            #     title="TRAFFIC SCAN // WORD_COUNT x CHAR_COUNT",
+            # )
+            # fig_scan.update_layout(**plotly_layout)
+            # st.plotly_chart(fig_scan, use_container_width=True)
         
         # DataFrame rendered
         display_cols = [c for c in ['author', 'text', 'subreddit', 'label', 'word_count', 'sentiment_compound'] if c in filtered_df.columns]

@@ -168,7 +168,7 @@ export default function DataExplorer() {
         </Card>
 
         {/* Scatter Chart */}
-        <Card className="border-[rgba(59,227,255,0.2)] bg-[rgba(8,14,28,0.7)] p-5">
+        {/* <Card className="border-[rgba(59,227,255,0.2)] bg-[rgba(8,14,28,0.7)] p-5">
           <h2 className="text-sm font-bold tracking-wider text-[#77f7ff] mb-4 uppercase">
             &gt;&gt; TRAFFIC SCAN // SCORE × BURSTINESS
           </h2>
@@ -185,7 +185,7 @@ export default function DataExplorer() {
               <Scatter name="AI" data={aiPoints} fill="#3be3ff" fillOpacity={0.6} />
             </ScatterChart>
           </ResponsiveContainer>
-        </Card>
+        </Card> */}
 
         {/* Data Table */}
         <Card className="border-[rgba(59,227,255,0.2)] bg-[rgba(8,14,28,0.7)] p-5">
