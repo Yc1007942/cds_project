@@ -78,6 +78,10 @@ async def model_info():
             "loaded": classifier.model is not None,
             "features": 768,  # BERT hidden dimension
             "type": "BertForSequenceClassification" if classifier.model else None,
+            "tokenizer_source": classifier.tokenizer_source,
+            "ai_label_index": classifier.ai_label_index,
+            "human_label_index": classifier.human_label_index,
+            "label_names": classifier.label_names,
         },
         "regressor": {
             "loaded": regressor.model is not None,

@@ -238,8 +238,48 @@ class BertClassificationModel:
         self.model = None
         self.tokenizer = None
         self.device = None
+        self.model_path = BERT_CLASSIFIER_PATH
+        self.tokenizer_source = None
+        self.ai_label_index = 0
+        self.human_label_index = 1
+        self.label_names = {}
         self.feature_names = []  # kept for API compat (model-info endpoint)
         self._load()
+
+    def _normalize_text(self, text: str) -> str:
+        """Keep classifier-time normalization minimal and deterministic."""
+        text = re.sub(r'http\S+|www\.\S+', ' ', text or '')
+        text = re.sub(r'[ \t]+', ' ', text)
+        text = re.sub(r'\n{3,}', '\n\n', text)
+        return text.strip()
+
+    def _resolve_label_mapping(self):
+        """Infer class indices from saved metadata when available."""
+        # The shipped classifier artifact does not include semantic id2label metadata.
+        # Evaluation against the local labeled dataset shows index 0 corresponds to AI.
+        self.ai_label_index = 0
+        self.human_label_index = 1
+        self.label_names = {}
+
+        if self.model is not None and hasattr(self.model.config, "id2label"):
+            raw_map = self.model.config.id2label or {}
+            self.label_names = {int(k): str(v) for k, v in raw_map.items()}
+
+            normalized = {idx: label.strip().lower() for idx, label in self.label_names.items()}
+            for idx, label in normalized.items():
+                if label in {"ai", "artificial_intelligence", "generated", "machine"}:
+                    self.ai_label_index = idx
+                elif label in {"human", "person", "organic"}:
+                    self.human_label_index = idx
+
+        ai_override = os.getenv("BERT_AI_LABEL_INDEX")
+        human_override = os.getenv("BERT_HUMAN_LABEL_INDEX")
+        if ai_override is not None:
+            self.ai_label_index = int(ai_override)
+        if human_override is not None:
+            self.human_label_index = int(human_override)
+        elif self.human_label_index == self.ai_label_index:
+            self.human_label_index = 1 - self.ai_label_index
 
     def _load(self):
         """Load the fine-tuned BertForSequenceClassification model"""
@@ -248,16 +288,28 @@ class BertClassificationModel:
             return
 
         try:
-            from transformers import BertForSequenceClassification, BertTokenizer
+            from transformers import AutoTokenizer, BertForSequenceClassification
 
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-            self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+            self.tokenizer_source = str(BERT_CLASSIFIER_PATH)
+            try:
+                self.tokenizer = AutoTokenizer.from_pretrained(
+                    str(BERT_CLASSIFIER_PATH),
+                    local_files_only=True,
+                )
+            except Exception:
+                self.tokenizer_source = os.getenv("BERT_TOKENIZER_PATH", "bert-base-uncased")
+                self.tokenizer = AutoTokenizer.from_pretrained(self.tokenizer_source)
+
             self.model = BertForSequenceClassification.from_pretrained(
                 str(BERT_CLASSIFIER_PATH),
                 num_labels=2
             ).to(self.device)
             self.model.eval()
+            self._resolve_label_mapping()
             print(f"✅ Loaded BERT classifier from {BERT_CLASSIFIER_PATH} on {self.device}")
+            print(f"   Tokenizer source: {self.tokenizer_source}")
+            print(f"   Label mapping: human={self.human_label_index}, ai={self.ai_label_index}, names={self.label_names or 'generic'}")
         except Exception as e:
             print(f"⚠️ Failed to load BERT classifier: {e}")
             import traceback
@@ -270,6 +322,7 @@ class BertClassificationModel:
             return {"label": "unknown", "prediction": -1, "confidence": 0.0, "ai_prob": 0.5, "human_prob": 0.5}
 
         try:
+            text = self._normalize_text(text)
             inputs = self.tokenizer(
                 text,
                 return_tensors='pt',
@@ -283,8 +336,8 @@ class BertClassificationModel:
                 logits = outputs.logits
                 probs = torch.nn.functional.softmax(logits, dim=-1)[0]
 
-            human_prob = float(probs[0])
-            ai_prob = float(probs[1])
+            human_prob = float(probs[self.human_label_index])
+            ai_prob = float(probs[self.ai_label_index])
             prediction = 1 if ai_prob > human_prob else 0
 
             return {
