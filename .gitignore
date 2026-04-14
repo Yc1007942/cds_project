@@ -12,3 +12,4 @@
 /src/__pycache__
 /src/.pt_tmp
 /src/lightning_logs
+/notebooks/reddit/__pycache__
