@@ -13,3 +13,4 @@
 /src/.pt_tmp
 /src/lightning_logs
 /notebooks/reddit/__pycache__
+/notebooks/moltbook/__pycache__

@@ -13,7 +13,7 @@ from pytorch_tabnet import TabNetRegressor
 # ==========================================
 # CONFIGURATION
 # ==========================================
-DATA_PATH = "../data/moltbook_with_keyword_features.pkl"
+DATA_PATH = "../../data/moltbook_with_keyword_features.pkl"
 EMBEDDING_COL = "embeddings"
 TARGET_COL = "score"
 RANDOM_STATE = 42

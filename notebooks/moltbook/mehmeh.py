@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import joblib
 import os
 # 1. Load Moltbook Data
-moltbook = pd.read_pickle("../../data/reddit_11_4_full.pkl")
+moltbook = pd.read_pickle("../../data/processed_v1_5_9_hf_pure_full.pkl")
 print(moltbook.head())
 print(moltbook.columns)
 # df = moltbook[['comment_existence', 'avg_early_sentiment',
@@ -17,6 +17,9 @@ print(moltbook.columns)
 #        'stopword_ratio', 'burstiness', 'punctuation_density', 'hedging_score',
 #        'self_reference_rate', 'forum_philosophy', 'forum_technology',
 #        'forum_todayilearned']]
+
+
+moltbook = moltbook[moltbook['forum_todayilearned'] == 1]
 
 EMBEDDING_COL = "embeddings"   # <-- CHANGE THIS to the actual column name containing the list of embeddings
 TARGET_COL = "score"
@@ -43,10 +46,10 @@ emb_df = pd.DataFrame(
 )
 print(f"Expanded embeddings shape: {emb_df.shape}")
 
-X_base = moltbook.drop(columns=[TARGET_COL, EMBEDDING_COL,'forum','created_utc_dt','title', 'selftext','safe_content',"content"])
+X_base = moltbook.drop(columns=[TARGET_COL, EMBEDDING_COL,"safe_content","content","id","forum_todayilearned","forum_philosophy","forum_technology"])
 
 
-# # y = moltbook[TARGET_COL]
+# y = moltbook[TARGET_COL]
 
 y_raw = moltbook[TARGET_COL].clip(lower=0)
 y = np.log1p(y_raw)
@@ -113,4 +116,3 @@ plt.xlabel('Importance Score')
 plt.title('Top 20 Non‑Embedding Features')
 plt.tight_layout()
 plt.show()
-

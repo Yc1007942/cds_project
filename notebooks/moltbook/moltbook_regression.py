@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 import joblib
 import os
 # 1. Load Moltbook Data
-moltbook = pd.read_pickle("../data/processed_v1_5_9_hf_pure_full.pkl")
-print(moltbook.head())
-print(moltbook.columns)
+moltbook = pd.read_pickle("../../data/moltbook_with_keyword_features.pkl")
+
+
 # df = moltbook[['comment_existence', 'avg_early_sentiment',
 #        'max_early_sentiment', 'min_early_sentiment', 'hour', 'ttr', 'hapax',
 #        'stopword_ratio', 'burstiness', 'punctuation_density', 'hedging_score',
@@ -43,7 +43,7 @@ emb_df = pd.DataFrame(
 )
 print(f"Expanded embeddings shape: {emb_df.shape}")
 
-X_base = moltbook.drop(columns=[TARGET_COL, EMBEDDING_COL,"safe_content","content","id"])
+X_base = moltbook.drop(columns=[TARGET_COL, EMBEDDING_COL,"safe_content","content","id","topic"])
 
 
 # y = moltbook[TARGET_COL]
@@ -96,15 +96,20 @@ print(f"Test R²: {r2_test:.4f}")
 # ==========================================
 importances = model.feature_importances_
 feat_names = X_train.columns
-df_imp = pd.DataFrame({'Feature': feat_names, 'Importance': importances})
-df_imp = df_imp.sort_values('Importance', ascending=False).head(20)
 
+# Create a mask for non‑embedding features
+non_emb_mask = ~feat_names.str.startswith('emb_')
+non_emb_importances = importances[non_emb_mask]
+non_emb_feat_names = feat_names[non_emb_mask]
+
+# Build dataframe and take top 20
+df_imp = pd.DataFrame({'Feature': non_emb_feat_names, 'Importance': non_emb_importances})
+df_imp = df_imp.sort_values('Importance', ascending=False).head(20)
+print(df_imp)
+# Plot
 plt.figure(figsize=(10, 8))
 plt.barh(df_imp['Feature'][::-1], df_imp['Importance'][::-1], color='lightcoral')
 plt.xlabel('Importance Score')
-plt.title('Top 20 Features: Base + Raw Embeddings')
+plt.title('Top 20 Non‑Embedding Features')
 plt.tight_layout()
-# plt.savefig('feature_importances.png', dpi=150)
 plt.show()
-
-joblib.dump(model, 'random_forest_model.joblib')

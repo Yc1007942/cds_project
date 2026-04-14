@@ -68,8 +68,24 @@ emb_df = pd.DataFrame(
     columns=[f"emb_{i}" for i in range(emb_dim)]
 )
 
+KEPT_FEATURES = [
+    "comment_existence",
+    "max_early_sentiment", 
+    "avg_early_sentiment",
+    "min_early_sentiment",
+    "punctuation_density",
+    "ttr",
+    "self_reference_rate",
+
+
+]
 # Base features and target
-X_base = moltbook.drop(columns=[TARGET_COL, EMBEDDING_COL] + DROP_COLS)
+available_features = [f for f in KEPT_FEATURES if f in moltbook.columns]
+
+# Base features and target
+# X_base = moltbook.drop(columns=[TARGET_COL, EMBEDDING_COL] + DROP_COLS)
+
+X_base = moltbook[available_features].copy()
 y_raw = moltbook[TARGET_COL].clip(lower=0)
 y = np.log1p(y_raw)
 
