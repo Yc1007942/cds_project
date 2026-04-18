@@ -13,7 +13,7 @@ from pytorch_tabnet import TabNetRegressor
 # ==========================================
 # CONFIGURATION
 # ==========================================
-DATA_PATH = "../../data/processed_v1_5_4_new_full.pkl"
+DATA_PATH = "../../data/moltbook_with_keyword_features.pkl"
 EMBEDDING_COL = "embeddings"
 TARGET_COL = "score"
 RANDOM_STATE = 42
@@ -53,7 +53,8 @@ TRAIN_PARAMS = {
 print("Loading data...")
 moltbook = pd.read_pickle(DATA_PATH)
 print(f"Original shape: {moltbook.shape}")
-
+moltbook = moltbook[moltbook['forum_todayilearned'] == 1]
+print(moltbook.shape)
 # Expand embeddings
 embedding_lists = moltbook[EMBEDDING_COL].values
 lengths = [len(lst) for lst in embedding_lists]
@@ -69,26 +70,27 @@ emb_df = pd.DataFrame(
 )
 
 # Base features and target
-# KEPT_FEATURES = [
-#     "comment_existence",
-#     "max_early_sentiment", 
-#     "avg_early_sentiment",
-#     "min_early_sentiment",
-#     "punctuation_density",
-#     "ttr",
-#     "hour",
-#     "has_biological_tax",
-#     "has_lobster",
-#     "has_great_lobster"
-# ]
+KEPT_FEATURES = [
+    "comment_existence",
+    "max_early_sentiment", 
+    "avg_early_sentiment",
+    "min_early_sentiment",
+    "punctuation_density",
+    "ttr",
+    "hour",
+    "has_biological_tax",
+    "has_lobster",
+    "has_great_lobster"
+]
 
-# # Base features and target
-# available_features = [f for f in KEPT_FEATURES if f in moltbook.columns]
+# Base features and target
+available_features = [f for f in KEPT_FEATURES if f in moltbook.columns]
 
-# # Base features and target
+# Base features and target
+# X_base = moltbook.drop(columns=[TARGET_COL, EMBEDDING_COL] + DROP_COLS)
 
-# X_base = moltbook[available_features].copy()
-X_base = moltbook.drop(columns=[TARGET_COL, EMBEDDING_COL] + DROP_COLS)
+X_base = moltbook[available_features].copy()
+# X_base = moltbook.drop(columns=[TARGET_COL, EMBEDDING_COL] + DROP_COLS)
 y_raw = moltbook[TARGET_COL].clip(lower=0)
 y = np.log1p(y_raw)
 

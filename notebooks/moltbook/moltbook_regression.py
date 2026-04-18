@@ -43,7 +43,7 @@ emb_df = pd.DataFrame(
 )
 print(f"Expanded embeddings shape: {emb_df.shape}")
 
-X_base = moltbook.drop(columns=[TARGET_COL, EMBEDDING_COL,"safe_content","content","id","topic"])
+X_base = moltbook.drop(columns=[TARGET_COL, EMBEDDING_COL,"safe_content","content","id","topic","comment_existence"])
 
 
 # y = moltbook[TARGET_COL]
