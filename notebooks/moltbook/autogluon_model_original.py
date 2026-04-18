@@ -27,7 +27,7 @@ from autogluon.tabular import TabularDataset, TabularPredictor
 # ==========================================
 DESTINATION_DIR = '../../data'
 # Update this path to match your FT-Transformer data file
-DATA_PATH = f"{DESTINATION_DIR}/reddit_11_4_full.pkl"
+DATA_PATH = f"{DESTINATION_DIR}/processed_v1_5_4_new_full.pkl"
 
 EMBEDDING_COL = "embeddings"
 TARGET_COL = "score"
@@ -73,8 +73,8 @@ except:
 
 # Create unique paths with timestamp
 timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-MODEL_PATH = f"/content/drive/MyDrive/autogluon_models_{timestamp}"
-RESULTS_PATH = f"/content/drive/MyDrive/autogluon_results_{timestamp}"
+MODEL_PATH = f"{DESTINATION_DIR}/autogluon_models_{timestamp}"
+RESULTS_PATH = f"{DESTINATION_DIR}/autogluon_results_{timestamp}"
 
 # Ensure clean directory
 if os.path.exists(MODEL_PATH):
@@ -113,24 +113,14 @@ emb_df = pd.DataFrame(
 # FEATURE SELECTION (Match FT-Transformer)
 # ==========================================
 # Filter to available features (some might not exist in your data)
-# available_features = [f for f in KEPT_FEATURES if f in moltbook.columns]
-# print(f"\nKeeping {len(available_features)} non-embedding features:")
-# for feature in available_features:
-#     print(f"  - {feature}")
-
-# # Check for missing features
-# missing_features = set(KEPT_FEATURES) - set(available_features)
-# if missing_features:
-#     print(f"\n⚠️ Warning: These features not found in data: {missing_features}")
-
-# # Select only the kept features
-# X_base = moltbook[available_features].copy()
 
 
+# Select only the kept features
+X_base = moltbook.drop(columns=[TARGET_COL, EMBEDDING_COL] + DROP_COLS)
 
-
-X_base = moltbook.drop(columns=[TARGET_COL, EMBEDDING_COL,'forum','created_utc_dt','title', 'selftext','safe_content',"content"])
-
+# ==========================================
+# HANDLE HOUR AS CATEGORICAL (AutoGluon can handle automatically, but explicit is fine)
+# ==========================================
 
 forum_columns = ['forum_philosophy', 'forum_technology', 'forum_todayilearned']
 existing_forum_cols = [col for col in forum_columns if col in X_base.columns]
@@ -155,8 +145,6 @@ for col in X_base.columns:
     if col in ['forum', 'hour_category'] or X_base[col].dtype in ['object', 'category']:
         categorical_cols.append(col)
         X_base[col] = X_base[col].astype('category')
-
-
 
 numerical_cols = [col for col in X_base.columns if col not in categorical_cols]
 
@@ -348,7 +336,7 @@ print(f"\n💾 Results saved to {RESULTS_PATH}.pkl")
 # print("\n" + "="*50)
 # print("COMPARISON SUMMARY (AutoGluon)")
 # print("="*50)
-# # print(f"Features used: {len(available_features)} non-embedding + {emb_dim} embedding = {len(available_features) + emb_dim} total")
+# print(f"Features used: {len(available_features)} non-embedding + {emb_dim} embedding = {len(available_features) + emb_dim} total")
 # print(f"Best model: {predictor.model_best}")
 # print(f"Test R² (original): {test_r2_orig:.4f}")
 # print(f"Validation R² (original): {val_r2_orig:.4f}")

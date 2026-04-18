@@ -16,3 +16,4 @@
 /notebooks/moltbook/__pycache__
 **/__pycache__/
 models/
+/ai_agent_sim/node_modules
