@@ -1,36 +1,47 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import os
+import sys
+from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load .env from project root (moltnet/)
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+load_dotenv(PROJECT_ROOT / ".env", override=True)
 
 # Import routers
-from routes import auth, simulation
+from routes import auth, simulation, data, inference
 
-# Lifespan context
+# Lifespan context — preload models on startup
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     print("🚀 FastAPI server starting...")
+    print(f"   Project root: {PROJECT_ROOT}")
+
+    # Preload data + models in background
+    from ml_model import get_features_df, get_classifier, get_regressor, get_extractor
+    get_features_df()
+    get_regressor()
+    get_classifier()
+    get_extractor()
+
+    print("✅ All models and data loaded")
     yield
-    # Shutdown
     print("🛑 FastAPI server shutting down...")
 
 # Create FastAPI app
 app = FastAPI(
-    title="AI Agent Sprite Simulation",
-    description="Dynamic AI agent discussion simulator with regression-based engagement",
-    version="1.0.0",
+    title="MoltNet — AI Agent Sprite Simulation",
+    description="Neural operations deck with AI agent simulation, data exploration, and live inference",
+    version="2.0.0",
     lifespan=lifespan
 )
 
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict this
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -39,10 +50,12 @@ app.add_middleware(
 # Include routers
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(simulation.router, prefix="/api/simulation", tags=["simulation"])
+app.include_router(data.router, prefix="/api/data", tags=["data"])
+app.include_router(inference.router, prefix="/api/inference", tags=["inference"])
 
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy", "service": "ai-agent-sprite-sim"}
+    return {"status": "healthy", "service": "moltnet-ai-sim"}
 
 if __name__ == "__main__":
     import uvicorn

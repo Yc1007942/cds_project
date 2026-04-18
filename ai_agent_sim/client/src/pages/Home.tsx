@@ -52,27 +52,9 @@ export default function Home() {
     status === "idle" ? 0 : (respondedCount / agentCount) * 100;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="border-b border-border/50 bg-card/50 backdrop-blur-sm">
-        <div className="container flex items-center justify-between h-14 px-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-primary" />
-            </div>
-            <h1 className="text-lg font-semibold tracking-tight text-foreground">
-              Agent Arena
-            </h1>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Users className="w-4 h-4" />
-            <span>{agentCount} agents online</span>
-          </div>
-        </div>
-      </header>
-
+    <div className="flex-1 flex flex-col bg-[#04070d]">
       {/* Main Content */}
-      <main className="flex-1 container px-4 py-4 flex flex-col lg:flex-row gap-4 overflow-hidden">
+      <main className="flex-1 max-w-[1600px] mx-auto w-full px-4 py-4 flex flex-col lg:flex-row gap-4 overflow-hidden">
         {/* Left Panel - Simulation Canvas */}
         <div className="flex-1 flex flex-col gap-4 min-w-0">
           {/* Canvas */}

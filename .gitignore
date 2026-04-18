@@ -14,3 +14,5 @@
 /src/lightning_logs
 /notebooks/reddit/__pycache__
 /notebooks/moltbook/__pycache__
+**/__pycache__/
+models/
