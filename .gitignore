@@ -17,3 +17,6 @@
 **/__pycache__/
 models/
 /ai_agent_sim/node_modules
+/ai_agent_sim/node_modules
+/ai_agent_sim/node_modules
+ai_agent_sim/package-lock.json
