@@ -31,8 +31,8 @@ async def get_stats():
 
     return {
         "total": len(df),
-        "ai_count": int((df['label'] == 1).sum()),
-        "human_count": int((df['label'] == 0).sum()),
+        "ai_count": int((df['label'] == 0).sum()),
+        "human_count": int((df['label'] == 1).sum()),
         "columns": [c for c in df.columns],
         "subreddits": [],  # No subreddit column in new CSV
     }
