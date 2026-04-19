@@ -14,7 +14,7 @@ interface AgentSprite {
   thinkingDots: Phaser.GameObjects.Text;
   homeX: number;
   homeY: number;
-  state: "idle" | "walking" | "thinking" | "talking" | "done";
+  state: "idle" | "walking" | "thinking" | "talking" | "done" | "not_interested";
   bobOffset: number;
 }
 
@@ -51,7 +51,7 @@ export class SimulationScene extends Phaser.Scene {
     // Create agent sprites in a circular layout around the center
     const centerX = width / 2;
     const centerY = height / 2;
-    const radius = Math.min(width, height) / 2.8;
+    const radius = Math.min(width, height) / 2.2;
     const positions = AGENT_PERSONAS.map((_, i) => {
       const angle = (i / AGENT_PERSONAS.length) * Math.PI * 2;
       return {
@@ -68,6 +68,7 @@ export class SimulationScene extends Phaser.Scene {
     gameEvents.on("start-simulation", this.startSimulation, this);
     gameEvents.on("agent-thinking", this.onAgentThinking, this);
     gameEvents.on("agent-responded", this.onAgentResponded, this);
+    gameEvents.on("agent-not-interested", this.onAgentNotInterested, this);
     gameEvents.on("reset-simulation", this.resetSimulation, this);
     gameEvents.on("show-post", this.showPostBubble, this);
 
@@ -278,7 +279,7 @@ export class SimulationScene extends Phaser.Scene {
     // Move agents toward center with staggered timing
     this.agents.forEach((agent, i) => {
       const angle = (i / this.agents.length) * Math.PI * 2 - Math.PI / 2;
-      const radius = 120;
+      const radius = 160;
       const targetX = centerX + Math.cos(angle) * radius;
       const targetY = centerY + Math.sin(angle) * radius;
 
@@ -320,13 +321,29 @@ export class SimulationScene extends Phaser.Scene {
     });
   }
 
+  private onAgentNotInterested(data: { agentId: string }) {
+    const agent = this.agents.find((a) => a.persona.id === data.agentId);
+    if (!agent) return;
+
+    agent.state = "not_interested";
+    agent.statusText.setText("not interested");
+
+    this.tweens.add({
+      targets: agent.container,
+      alpha: 0.5,
+      duration: 1000,
+      ease: "Power2",
+    });
+  }
+
   private onAgentResponded(data: { agentId: string; response: string }) {
     const agent = this.agents.find((a) => a.persona.id === data.agentId);
     if (!agent) return;
 
-    // Stop thinking animation
+    // Stop animations and reset state
     this.tweens.killTweensOf(agent.container);
     agent.container.setScale(1);
+    agent.container.setAlpha(1);
 
     agent.state = "done";
     agent.statusText.setText("responded");
@@ -394,6 +411,7 @@ export class SimulationScene extends Phaser.Scene {
     this.agents.forEach((agent) => {
       this.tweens.killTweensOf(agent.container);
       agent.container.setScale(1);
+      agent.container.setAlpha(1);
 
       this.tweens.add({
         targets: agent.container,
@@ -420,7 +438,7 @@ export class SimulationScene extends Phaser.Scene {
     // Reposition agent home positions
     const centerX = width / 2;
     const centerY = height / 2;
-    const radius = Math.min(width, height) / 2.8;
+    const radius = Math.min(width, height) / 2.2;
 
     this.agents.forEach((agent, i) => {
       const angle = (i / this.agents.length) * Math.PI * 2;
