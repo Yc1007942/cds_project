@@ -3,3 +3,7 @@
 /temp
 **/__pycache__/
 models/
+/ai_agent_sim/backend/venv
+/src/.pt_tmp
+/venv
+/src/lightning_logs
