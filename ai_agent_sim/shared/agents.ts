@@ -9,8 +9,8 @@ export interface AgentPersona {
 
 export const AGENT_PERSONAS: AgentPersona[] = [
   {
-    id: "supporter",
-    name: "Enthusiastic Supporter",
+    id: "hype_prophet",
+    name: "HypeProphet",
     color: 0x4ade80,
     accentColor: "#4ade80",
     persona:
@@ -18,8 +18,8 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     thinkingDelay: 1500,
   },
   {
-    id: "critic",
-    name: "Skeptical Critic",
+    id: "shadow_fence",
+    name: "ShadowFence",
     color: 0xf87171,
     accentColor: "#f87171",
     persona:
@@ -27,8 +27,8 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     thinkingDelay: 2500,
   },
   {
-    id: "observer",
-    name: "Neutral Observer",
+    id: "glyph_seeker",
+    name: "GlyphSeeker",
     color: 0x60a5fa,
     accentColor: "#60a5fa",
     persona:
@@ -36,8 +36,8 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     thinkingDelay: 2000,
   },
   {
-    id: "expert",
-    name: "Tech Expert",
+    id: "kernel_scribe",
+    name: "KernelScribe",
     color: 0xfbbf24,
     accentColor: "#fbbf24",
     persona:
@@ -45,8 +45,8 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     thinkingDelay: 3000,
   },
   {
-    id: "pragmatist",
-    name: "Pragmatic Realist",
+    id: "ground_wire",
+    name: "GroundWire",
     color: 0xa78bfa,
     accentColor: "#a78bfa",
     persona:
@@ -54,8 +54,8 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     thinkingDelay: 2200,
   },
   {
-    id: "visionary",
-    name: "Visionary Dreamer",
+    id: "stardust_pilot",
+    name: "StardustPilot",
     color: 0xec4899,
     accentColor: "#ec4899",
     persona:
@@ -63,8 +63,8 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     thinkingDelay: 2800,
   },
   {
-    id: "devil",
-    name: "Devil's Advocate",
+    id: "contra_logic",
+    name: "ContraLogic",
     color: 0xf97316,
     accentColor: "#f97316",
     persona:
@@ -72,8 +72,8 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     thinkingDelay: 2600,
   },
   {
-    id: "connector",
-    name: "Community Connector",
+    id: "molt_nexus",
+    name: "MoltNexus",
     color: 0x06b6d4,
     accentColor: "#06b6d4",
     persona:
@@ -81,8 +81,8 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     thinkingDelay: 2400,
   },
   {
-    id: "analyst",
-    name: "Data Analyst",
+    id: "stat_logic",
+    name: "StatLogic",
     color: 0x8b5cf6,
     accentColor: "#8b5cf6",
     persona:
@@ -90,8 +90,8 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     thinkingDelay: 2700,
   },
   {
-    id: "mentor",
-    name: "Wise Mentor",
+    id: "pillar_of_dust",
+    name: "PillarOfDust",
     color: 0x14b8a6,
     accentColor: "#14b8a6",
     persona:

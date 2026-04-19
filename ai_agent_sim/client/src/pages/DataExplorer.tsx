@@ -173,7 +173,7 @@ export default function DataExplorer() {
             icon={<FileText className="w-4 h-4" />}
           />
           <MetricCard
-            label="AI_AGENTS"
+            label="AI_AGENTS" 
             value={stats?.ai_count ?? 0}
             icon={<Bot className="w-4 h-4" />}
             color="#3be3ff"

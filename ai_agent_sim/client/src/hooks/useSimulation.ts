@@ -38,6 +38,14 @@ export function useSimulation() {
       setPredictedScore(result.predictedScore);
       setAgentsToSpawn(result.agentsSpawned);
 
+      // Find agents that didn't respond and tell Phaser they are not interested
+      const respondedAgentIds = new Set(result.responses.map((r) => r.agentId));
+      AGENT_PERSONAS.forEach((p) => {
+        if (!respondedAgentIds.has(p.id)) {
+          gameEvents.emit("agent-not-interested", { agentId: p.id });
+        }
+      });
+
       // Process responses and emit events to Phaser
       for (let i = 0; i < result.responses.length; i++) {
         if (abortRef.current) break;

@@ -31,9 +31,11 @@ function App() {
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <Toaster />
-          <div className="min-h-screen flex flex-col bg-[#04070d]">
+          <div className="h-screen flex flex-col bg-[#04070d] overflow-hidden">
             <Navigation />
-            <Router />
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <Router />
+            </div>
           </div>
         </TooltipProvider>
       </ThemeProvider>

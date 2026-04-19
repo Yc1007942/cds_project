@@ -52,14 +52,16 @@ export default function Home() {
     status === "idle" ? 0 : (respondedCount / agentCount) * 100;
 
   return (
-    <div className="flex-1 flex flex-col bg-[#04070d]">
+    <div className="flex-1 flex flex-col bg-[#04070d] min-h-0">
       {/* Main Content */}
-      <main className="flex-1 max-w-[1600px] mx-auto w-full px-4 py-4 flex flex-col lg:flex-row gap-4 overflow-hidden">
+      <main className="flex-1 max-w-[1600px] mx-auto w-full px-4 py-4 flex flex-col lg:flex-row gap-4 overflow-hidden min-h-0">
         {/* Left Panel - Simulation Canvas */}
-        <div className="flex-1 flex flex-col gap-4 min-w-0">
+        <div className="flex-1 flex flex-col gap-4 min-w-0 min-h-0">
           {/* Canvas */}
-          <Card className="flex-1 min-h-[350px] lg:min-h-0 overflow-hidden border-border/50 bg-card/30 p-0">
-            <PhaserGame className="w-full h-full" />
+          <Card className="flex-1 min-h-[350px] lg:min-h-0 overflow-hidden border-border/50 bg-card/30 p-0 relative">
+            <div className="absolute inset-0">
+              <PhaserGame className="w-full h-full" />
+            </div>
           </Card>
 
           {/* Input Area */}
@@ -111,7 +113,7 @@ export default function Home() {
         </div>
 
         {/* Right Panel - Conversation Log & Metrics */}
-        <div className="w-full lg:w-[380px] flex flex-col gap-4">
+        <div className="w-full lg:w-[380px] flex flex-col gap-4 min-h-0">
           {/* Engagement Metrics */}
           <Card className="border-border/50 bg-card/50 p-4">
             <div className="flex items-center justify-between mb-3">
@@ -156,7 +158,7 @@ export default function Home() {
           </Card>
 
           {/* Conversation Log */}
-          <Card className="flex-1 border-border/50 bg-card/50 flex flex-col overflow-hidden">
+          <Card className="flex-1 border-border/50 bg-card/50 flex flex-col overflow-hidden min-h-0">
             <div className="p-4 pb-2">
               <h2 className="text-sm font-semibold text-foreground flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-primary" />
@@ -164,7 +166,7 @@ export default function Home() {
               </h2>
             </div>
             <Separator className="opacity-50" />
-            <ScrollArea className="flex-1 p-4">
+            <ScrollArea className="flex-1 p-4 min-h-0">
               {responses.length === 0 && status === "idle" && (
                 <div className="text-center text-muted-foreground text-sm py-8">
                   <Users className="w-8 h-8 mx-auto mb-3 opacity-40" />
