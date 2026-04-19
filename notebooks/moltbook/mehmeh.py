@@ -68,7 +68,7 @@ print(f"Validation sizes: Base={X_base_val.shape}, Embeddings={emb_val.shape}")
 print(f"Test sizes: Base={X_base_test.shape}, Embeddings={emb_test.shape}")
 
 # ==========================================
-# 5. Model: Base Features + Raw Embeddings
+# Model: Base Features + Raw Embeddings
 # ==========================================
 print("\nTraining Random Forest (Base + Raw Embeddings)...")
 X_train = pd.concat([X_base_train, emb_train], axis=1)
@@ -95,7 +95,7 @@ print(f"Validation R²: {r2_val:.4f}")
 print(f"Test R²: {r2_test:.4f}")
 
 # ==========================================
-# 6. Feature Importances (Top 20)
+# Feature Importances (Top 20)
 # ==========================================
 importances = model.feature_importances_
 feat_names = X_train.columns

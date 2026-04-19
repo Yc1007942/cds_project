@@ -18,7 +18,7 @@ print(moltbook.columns)
 #        'self_reference_rate', 'forum_philosophy', 'forum_technology',
 #        'forum_todayilearned']]
 
-EMBEDDING_COL = "embeddings"   # <-- CHANGE THIS to the actual column name containing the list of embeddings
+EMBEDDING_COL = "embeddings"  
 TARGET_COL = "score"
 
 RANDOM_STATE = 42

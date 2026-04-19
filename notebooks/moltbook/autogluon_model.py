@@ -56,7 +56,7 @@ TIME_LIMIT = 3600          # seconds (None for unlimited)
 EVAL_METRIC = 'r2'
 
 # ==========================================
-# 🔧 PRE-RUN CHECK & CLEANUP
+# PRE-RUN CHECK & CLEANUP
 # ==========================================
 print("\n" + "="*50)
 print("CLEANING UP PREVIOUS STATE")
@@ -85,7 +85,7 @@ print(f"Model will be saved to: {MODEL_PATH}")
 print(f"Results will be saved to: {RESULTS_PATH}.pkl")
 
 # ==========================================
-# 1. Load and prepare data
+# Load and prepare data
 # ==========================================
 print("\n" + "="*50)
 print("LOADING AND PREPARING DATA")
@@ -121,7 +121,7 @@ for feature in available_features:
 # Check for missing features
 missing_features = set(KEPT_FEATURES) - set(available_features)
 if missing_features:
-    print(f"\n⚠️ Warning: These features not found in data: {missing_features}")
+    print(f"\n Warning: These features not found in data: {missing_features}")
 
 # Select only the kept features
 X_base = moltbook[available_features].copy()
@@ -190,7 +190,7 @@ print(f"Validation data: {val_data.shape}")
 print(f"Test data: {test_data.shape}")
 
 # ==========================================
-# 3. Train AutoGluon Predictor
+# Train AutoGluon Predictor
 # ==========================================
 print("\n" + "="*50)
 print("TRAINING AUTOGLUON PREDICTOR")
@@ -218,7 +218,7 @@ predictor.fit(
 )
 
 # ==========================================
-# 4. Evaluate on test set
+# Evaluate on test set
 # ==========================================
 print("\n" + "="*50)
 print("EVALUATION ON TEST SET")
@@ -238,7 +238,7 @@ test_r2_log   = r2_score(test_true, test_preds)
 test_rmse_log = np.sqrt(mean_squared_error(test_true, test_preds))
 test_mae_log  = mean_absolute_error(test_true, test_preds)
 
-print(f"\n📊 Log Space Metrics:")
+print(f"\n Log Space Metrics:")
 print(f"  Test R²:  {test_r2_log:.4f}")
 print(f"  Test RMSE: {test_rmse_log:.4f}")
 print(f"  Test MAE:  {test_mae_log:.4f}")
@@ -250,13 +250,13 @@ test_r2_orig    = r2_score(test_true_orig, test_preds_orig)
 test_rmse_orig  = np.sqrt(mean_squared_error(test_true_orig, test_preds_orig))
 test_mae_orig   = mean_absolute_error(test_true_orig, test_preds_orig)
 
-print(f"\n📊 Original Space Metrics:")
+print(f"\n Original Space Metrics:")
 print(f"  Test R²:  {test_r2_orig:.4f}")
 print(f"  Test RMSE: {test_rmse_orig:.2f}")
 print(f"  Test MAE:  {test_mae_orig:.2f}")
 
 # ==========================================
-# 5. Validation set evaluation
+# Validation set evaluation
 # ==========================================
 val_preds = predictor.predict(val_data, model=predictor.model_best)
 val_true  = val_data[TARGET_COL].values
@@ -269,7 +269,7 @@ print(f"  Validation R² (log): {val_r2_log:.4f}")
 print(f"  Validation R² (original): {val_r2_orig:.4f}")
 
 # ==========================================
-# 6. Save results
+# Save results
 # ==========================================
 results = {
     'test_log': {'r2': test_r2_log, 'rmse': test_rmse_log, 'mae': test_mae_log},
@@ -292,7 +292,7 @@ joblib.dump(results, f"{RESULTS_PATH}.pkl")
 print(f"\n💾 Results saved to {RESULTS_PATH}.pkl")
 
 # ==========================================
-# 7. Feature importance plot
+# Feature importance plot
 # ==========================================
 print("\n" + "="*50)
 print("FEATURE IMPORTANCE ANALYSIS")
@@ -318,13 +318,13 @@ try:
     embedding_importance = feature_importance[feature_importance.index.str.startswith('emb_')]
     non_embedding_importance = feature_importance[~feature_importance.index.str.startswith('emb_')]
     
-    print(f"\n📊 Importance Summary:")
+    print(f"\n Importance Summary:")
     print(f"  Total embedding importance: {embedding_importance['importance'].sum():.4f}")
     print(f"  Total non-embedding importance: {non_embedding_importance['importance'].sum():.4f}")
     print(f"  Top non-embedding feature: {non_embedding_importance.index[0]} ({non_embedding_importance.iloc[0]['importance']:.4f})")
     
 except Exception as e:
-    print(f"⚠️ Could not compute feature importance: {e}")
+    print(f" Could not compute feature importance: {e}")
 
 # ==========================================
 # 8. Summary for comparison with FT-Transformer
@@ -339,6 +339,6 @@ print(f"Validation R² (original): {val_r2_orig:.4f}")
 print(f"Training time: {leaderboard[leaderboard['model'] == predictor.model_best]['fit_time'].values[0]:.2f} seconds")
 print(f"Inference time (test): {leaderboard[leaderboard['model'] == predictor.model_best]['pred_time_test'].values[0]:.2f} seconds")
 
-print("\n✅ Training completed successfully!")
+print("\n Training completed successfully!")
 print(f"Model saved at: {MODEL_PATH}")
 print(f"To load model: predictor = TabularPredictor.load('{MODEL_PATH}')")
