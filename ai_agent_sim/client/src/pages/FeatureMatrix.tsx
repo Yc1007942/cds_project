@@ -223,26 +223,32 @@ export default function FeatureMatrix() {
             </div>
           </div>
           {corrMatrix.length > 0 && (
-            <div className="overflow-x-auto">
-              <table className="mx-auto">
+            <div className="overflow-x-auto pt-20 pb-4 mt-4">
+              <table className="mx-auto border-separate border-spacing-0">
                 <thead>
-                  <tr>
+                  <tr className="h-24">
                     <th />
                     {corrLabels.map(l => (
-                      <th key={l} className="px-2 py-1 text-[9px] text-[#a8ebff] uppercase tracking-wider -rotate-45 origin-bottom-left whitespace-nowrap">{l}</th>
+                      <th key={l} className="relative p-0 w-12 group">
+                        <div className="absolute bottom-4 left-6 text-[9px] text-[#a8ebff] uppercase tracking-wider -rotate-45 origin-bottom-left whitespace-nowrap group-hover:text-[#3be3ff] transition-colors">
+                          {l.replace(/_/g, " ")}
+                        </div>
+                      </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {corrMatrix.map((row, i) => (
                     <tr key={i}>
-                      <td className="px-2 py-1 text-[9px] text-[#a8ebff] uppercase tracking-wider text-right whitespace-nowrap">{corrLabels[i]}</td>
+                      <td className="px-4 py-1 text-[10px] text-[#a8ebff] uppercase tracking-wider text-right whitespace-nowrap bg-[rgba(8,14,28,0.4)]">
+                        {corrLabels[i].replace(/_/g, " ")}
+                      </td>
                       {row.map((val, j) => {
                         const intensity = Math.abs(val);
                         const hue = val >= 0 ? 170 : 340;
                         return (
-                          <td key={j} className="w-12 h-10 text-center text-[10px] font-mono border border-[rgba(59,227,255,0.1)]"
-                            style={{ backgroundColor: `hsla(${hue}, 80%, 50%, ${intensity * 0.6})`, color: intensity > 0.5 ? "#fff" : "#8cb8cc" }}>
+                          <td key={j} className="w-12 h-10 text-center text-[10px] font-mono border border-[rgba(59,227,255,0.1)] transition-colors hover:border-[#3be3ff]/50"
+                            style={{ backgroundColor: `hsla(${hue}, 80%, 50%, ${intensity * 0.6})`, color: intensity > 0.6 ? "#fff" : "#d9f7ff" }}>
                             {val.toFixed(2)}
                           </td>
                         );

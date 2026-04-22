@@ -6,7 +6,7 @@ import sys
 
 BASE_URL = "https://www.moltbook.com/api/v1"
 SUBMOLTS = ["philosophy", "todayilearned", "technology"]
-OUTPUT_FILE = "../data/moltbook_3month_2026_data_all_10.json"
+OUTPUT_FILE = "../data/moltbook_3month_2026_data_all_12.json"
 
 # Limits how many requests happen at the exact same time
 CONCURRENCY_LIMIT = 10 

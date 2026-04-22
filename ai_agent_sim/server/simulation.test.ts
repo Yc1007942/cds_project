@@ -46,14 +46,14 @@ describe("simulation.getAgentResponse", () => {
     const caller = appRouter.createCaller(ctx);
 
     const result = await caller.simulation.getAgentResponse({
-      agentId: "supporter",
+      agentId: "hype_prophet",
       post: "AI is the future of software development",
       conversationHistory: "",
     });
 
     expect(result).toBeDefined();
-    expect(result.agentId).toBe("supporter");
-    expect(result.agentName).toBe("Enthusiastic Supporter");
+    expect(result.agentId).toBe("hype_prophet");
+    expect(result.agentName).toBe("HypeProphet");
     expect(typeof result.response).toBe("string");
     expect(result.response.length).toBeGreaterThan(0);
   });
@@ -80,16 +80,16 @@ describe("simulation.getAgentResponse", () => {
     const caller = appRouter.createCaller(ctx);
 
     const history =
-      "Enthusiastic Supporter: Great idea!\nSkeptical Critic: I have doubts.";
+      "HypeProphet: Great idea!\nShadowFence: I have doubts.";
 
     const result = await caller.simulation.getAgentResponse({
-      agentId: "observer",
+      agentId: "glyph_seeker",
       post: "AI will change everything",
       conversationHistory: history,
     });
 
-    expect(result.agentId).toBe("observer");
-    expect(result.agentName).toBe("Neutral Observer");
+    expect(result.agentId).toBe("glyph_seeker");
+    expect(result.agentName).toBe("GlyphSeeker");
     expect(result.response).toBeTruthy();
   });
 
@@ -112,7 +112,7 @@ describe("simulation.getAgentResponse", () => {
 
     await expect(
       caller.simulation.getAgentResponse({
-        agentId: "supporter",
+        agentId: "hype_prophet",
         post: "",
         conversationHistory: "",
       }),
@@ -121,8 +121,8 @@ describe("simulation.getAgentResponse", () => {
 });
 
 describe("shared/agents", () => {
-  it("has exactly 4 agent personas defined", () => {
-    expect(AGENT_PERSONAS).toHaveLength(4);
+  it("has exactly 10 agent personas defined", () => {
+    expect(AGENT_PERSONAS).toHaveLength(10);
   });
 
   it("each persona has required fields", () => {
