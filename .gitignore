@@ -7,3 +7,4 @@ models/
 /src/.pt_tmp
 /venv
 /src/lightning_logs
+/ai_agent_sim/node_modules
