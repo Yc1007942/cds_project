@@ -125,8 +125,8 @@ export default function DataExplorer() {
     URL.revokeObjectURL(url);
   }
 
-  const humanPoints = scatterData.filter((point) => point.label === 0);
-  const aiPoints = scatterData.filter((point) => point.label === 1);
+  const humanPoints = scatterData.filter((point) => point.label === 1);
+  const aiPoints = scatterData.filter((point) => point.label === 0);
 
   const labelMixData = useMemo(() => {
     if (!stats) return [];
@@ -228,8 +228,8 @@ export default function DataExplorer() {
                 className="w-full bg-[rgba(4,10,20,0.8)] border border-[rgba(59,227,255,0.2)] rounded-lg px-3 py-2 text-sm text-[#d9f7ff] focus:outline-none focus:border-[#3be3ff]"
               >
                 <option value="all">ALL</option>
-                <option value="0">HUMAN (0)</option>
-                <option value="1">AI (1)</option>
+                <option value="1">HUMAN (1)</option>
+                <option value="0">AI (0)</option>
               </select>
             </div>
 

@@ -150,14 +150,6 @@ export default function FeatureMatrix() {
               <Bar dataKey="ai" name="AI" fill="#3be3ff" fillOpacity={0.7} />
             </BarChart>
           </ResponsiveContainer>
-
-          {/* Box stats */}
-          {boxHuman && boxAi && (
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <BoxStatCard title="HUMAN" stats={boxHuman} color="#67ff9f" />
-              <BoxStatCard title="AI" stats={boxAi} color="#3be3ff" />
-            </div>
-          )}
         </Card>
 
         {/* 2D Scatter */}
@@ -186,8 +178,8 @@ export default function FeatureMatrix() {
               <YAxis dataKey={scatterY} type="number" name={scatterY} stroke="#8cb8cc" tick={{ fill: "#8cb8cc", fontSize: 10 }} />
               <Tooltip contentStyle={{ backgroundColor: "rgba(8,14,28,0.95)", border: "1px solid rgba(59,227,255,0.3)", borderRadius: 8, color: "#d9f7ff", fontSize: 11 }} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Scatter name="HUMAN" data={scatterData.filter((p: any) => p.label === 0)} fill="#67ff9f" fillOpacity={0.5} />
-              <Scatter name="AI" data={scatterData.filter((p: any) => p.label === 1)} fill="#3be3ff" fillOpacity={0.5} />
+              <Scatter name="HUMAN" data={scatterData.filter((p: any) => p.label === 1)} fill="#67ff9f" fillOpacity={0.5} />
+              <Scatter name="AI" data={scatterData.filter((p: any) => p.label === 0)} fill="#3be3ff" fillOpacity={0.5} />
             </ScatterChart>
           </ResponsiveContainer>
         </Card>
@@ -304,22 +296,6 @@ export default function FeatureMatrix() {
             </ScatterChart>
           </ResponsiveContainer>
         </Card>
-      </div>
-    </div>
-  );
-}
-
-function BoxStatCard({ title, stats, color }: { title: string; stats: api.BoxStats; color: string }) {
-  return (
-    <div className="border border-[rgba(59,227,255,0.15)] rounded-lg p-3 bg-[rgba(4,10,20,0.5)]">
-      <div className="text-[10px] tracking-wider uppercase mb-2" style={{ color }}>{title}</div>
-      <div className="grid grid-cols-3 gap-2 text-[10px] text-[#8cb8cc]">
-        <div>MIN: <span className="text-[#d9f7ff]">{stats.min.toFixed(2)}</span></div>
-        <div>Q1: <span className="text-[#d9f7ff]">{stats.q1.toFixed(2)}</span></div>
-        <div>MED: <span className="text-[#d9f7ff]">{stats.median.toFixed(2)}</span></div>
-        <div>MEAN: <span className="text-[#d9f7ff]">{stats.mean.toFixed(2)}</span></div>
-        <div>Q3: <span className="text-[#d9f7ff]">{stats.q3.toFixed(2)}</span></div>
-        <div>MAX: <span className="text-[#d9f7ff]">{stats.max.toFixed(2)}</span></div>
       </div>
     </div>
   );

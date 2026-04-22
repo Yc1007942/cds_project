@@ -109,8 +109,8 @@ async def get_distribution(
         return {"bins": [], "feature": feature}
 
     col = df[feature].dropna()
-    human = df[df['label'] == 0][feature].dropna()
-    ai = df[df['label'] == 1][feature].dropna()
+    human = df[df['label'] == 1][feature].dropna()
+    ai = df[df['label'] == 0][feature].dropna()
 
     # Compute histogram bins
     bin_edges = np.linspace(col.min(), col.max(), bins + 1)
@@ -168,7 +168,7 @@ async def get_clusters(
     if df.empty or 'label' not in df.columns:
         return {"points": [], "explained_variance": 0}
 
-    ai_df = df[df['label'] == 1].copy()
+    ai_df = df[df['label'] == 0].copy()
     if len(ai_df) < 3:
         return {"points": [], "explained_variance": 0}
 
@@ -232,8 +232,8 @@ async def get_feature_stats():
         return {"min": float(df[f].min()), "max": float(df[f].max())}
 
     return {
-        "human_means": group_means(0),
-        "ai_means": group_means(1),
+        "human_means": group_means(1),
+        "ai_means": group_means(0),
         "ranges": {f: col_range(f) for f in available},
         "features": available,
     }
