@@ -154,6 +154,20 @@ export async function getFeatureStats(): Promise<{
   return r.json();
 }
 
+export interface FeatureImportance {
+  Feature: string;
+  Importance: number;
+}
+
+export async function getFeatureImportances(): Promise<{
+  moltbook: FeatureImportance[];
+  reddit: FeatureImportance[];
+}> {
+  const r = await fetch(`${API_BASE_URL}/data/feature-importances`);
+  if (!r.ok) throw new Error("Failed to get feature importances");
+  return r.json();
+}
+
 
 // ─── Inference ─────────────────────────────────────────────────────
 export interface ClassificationResult {

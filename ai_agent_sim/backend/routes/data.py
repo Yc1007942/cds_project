@@ -6,8 +6,13 @@ from typing import Optional, List
 import numpy as np
 import pandas as pd
 
-from ml_model import get_features_df, get_feature_matrix_df
-
+try:
+    from ml_model import get_features_df, get_feature_matrix_df
+except ImportError:
+    def get_features_df():
+        return pd.DataFrame()
+    def get_feature_matrix_df():
+        return pd.DataFrame()
 router = APIRouter()
 
 # Features available in the new combined CSV
@@ -232,3 +237,47 @@ async def get_feature_stats():
         "ranges": {f: col_range(f) for f in available},
         "features": available,
     }
+
+
+@router.get("/feature-importances")
+async def get_feature_importances():
+    """Returns the feature importance rankings for Moltbook and Reddit datasets."""
+    from pathlib import Path
+    try:
+        base_path = Path(__file__).resolve().parent.parent.parent.parent / "data"
+        moltbook_path = base_path / "moltbook_feature_importances.csv"
+        reddit_path = base_path / "redit_feature_importances.csv"
+        
+        moltbook_df = pd.read_csv(moltbook_path) if moltbook_path.exists() else pd.DataFrame(columns=["Feature", "Importance"])
+        reddit_df = pd.read_csv(reddit_path) if reddit_path.exists() else pd.DataFrame(columns=["Feature", "Importance"])
+        
+        return {
+            "moltbook": moltbook_df.to_dict(orient='records'),
+            "reddit": reddit_df.to_dict(orient='records')
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {"error": str(e), "moltbook": [], "reddit": []}
+
+
+@router.get("/feature-importances")
+async def get_feature_importances():
+    """Returns the feature importance rankings for Moltbook and Reddit datasets."""
+    from pathlib import Path
+    try:
+        base_path = Path(__file__).resolve().parent.parent.parent.parent / "data"
+        moltbook_path = base_path / "moltbook_feature_importances.csv"
+        reddit_path = base_path / "redit_feature_importances.csv"
+        
+        moltbook_df = pd.read_csv(moltbook_path) if moltbook_path.exists() else pd.DataFrame(columns=["Feature", "Importance"])
+        reddit_df = pd.read_csv(reddit_path) if reddit_path.exists() else pd.DataFrame(columns=["Feature", "Importance"])
+        
+        return {
+            "moltbook": moltbook_df.to_dict(orient='records'),
+            "reddit": reddit_df.to_dict(orient='records')
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {"error": str(e), "moltbook": [], "reddit": []}

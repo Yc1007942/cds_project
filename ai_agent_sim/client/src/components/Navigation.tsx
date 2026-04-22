@@ -5,7 +5,7 @@ import { useState } from "react";
 const NAV_ITEMS = [
   { path: "/", label: "Agent Arena", icon: Zap, shortLabel: "01" },
   { path: "/data-explorer", label: "Data Explorer", icon: Database, shortLabel: "02" },
-  { path: "/feature-matrix", label: "Feature Matrix", icon: BarChart3, shortLabel: "03" },
+  { path: "/feature-matrix", label: "Features", icon: BarChart3, shortLabel: "03" },
   { path: "/inference", label: "Inference Core", icon: Brain, shortLabel: "04" },
   { path: "/graphs-findings", label: "Graphs & Findings", icon: LineChart, shortLabel: "05" },
 ];

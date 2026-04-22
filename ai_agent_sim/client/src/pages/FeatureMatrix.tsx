@@ -25,6 +25,7 @@ export default function FeatureMatrix() {
   const [scatterY, setScatterY] = useState("burstiness");
   const [scatterData, setScatterData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [featureImportances, setFeatureImportances] = useState<{moltbook: api.FeatureImportance[], reddit: api.FeatureImportance[]}>({moltbook: [], reddit: []});
 
   useEffect(() => {
     loadFeatures();
@@ -42,6 +43,9 @@ export default function FeatureMatrix() {
         await loadScatter(f[0], f.length > 1 ? f[1] : f[0]);
         await loadClusters(5);
       }
+      
+      const importances = await api.getFeatureImportances();
+      setFeatureImportances(importances);
     } catch (err) {
       console.error(err);
     } finally {
@@ -120,10 +124,45 @@ export default function FeatureMatrix() {
         <div className="space-y-1">
           <h1 className="text-xl font-bold tracking-[2px] text-[#77f7ff] font-[Orbitron,sans-serif] uppercase flex items-center gap-3">
             <BarChart3 className="w-5 h-5" />
-            FEATURE_MATRIX.EXE
+            FEATURES.EXE
           </h1>
-          <p className="text-xs text-[#8cb8cc] tracking-wider">SYSTEM STATUS: VISUALIZING LINGUISTIC VECTORS</p>
+          <p className="text-xs text-[#8cb8cc] tracking-wider">SYSTEM STATUS: VISUALIZING LINGUISTIC VECTORS & IMPORTANCES</p>
         </div>
+
+        {/* Feature Importances */}
+        {featureImportances.moltbook.length > 0 && featureImportances.reddit.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="border-[rgba(59,227,255,0.2)] bg-[rgba(8,14,28,0.7)] p-5">
+              <h2 className="text-sm font-bold tracking-wider text-[#77f7ff] uppercase mb-4">
+                &gt;&gt; MOLTBOOK_IMPORTANCES
+              </h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={featureImportances.moltbook.slice(0, 10)} layout="vertical" margin={{ left: 80, right: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,227,255,0.1)" horizontal={true} vertical={false} />
+                  <XAxis type="number" tick={{ fill: "#8cb8cc", fontSize: 10 }} />
+                  <YAxis dataKey="Feature" type="category" tick={{ fill: "#8cb8cc", fontSize: 9 }} width={120} />
+                  <Tooltip cursor={{ fill: "rgba(59,227,255,0.05)" }} contentStyle={{ backgroundColor: "rgba(8,14,28,0.95)", border: "1px solid rgba(59,227,255,0.3)", borderRadius: 8, color: "#d9f7ff", fontSize: 11 }} />
+                  <Bar dataKey="Importance" fill="#77ebffff" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+
+            <Card className="border-[rgba(59,227,255,0.2)] bg-[rgba(8,14,28,0.7)] p-5">
+              <h2 className="text-sm font-bold tracking-wider text-[#77f7ff] uppercase mb-4">
+                &gt;&gt; REDDIT_IMPORTANCES
+              </h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={featureImportances.reddit.slice(0, 10)} layout="vertical" margin={{ left: 80, right: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,227,255,0.1)" horizontal={true} vertical={false} />
+                  <XAxis type="number" tick={{ fill: "#8cb8cc", fontSize: 10 }} />
+                  <YAxis dataKey="Feature" type="category" tick={{ fill: "#8cb8cc", fontSize: 9 }} width={120} />
+                  <Tooltip cursor={{ fill: "rgba(59,227,255,0.05)" }} contentStyle={{ backgroundColor: "rgba(8,14,28,0.95)", border: "1px solid rgba(59,227,255,0.3)", borderRadius: 8, color: "#d9f7ff", fontSize: 11 }} />
+                  <Bar dataKey="Importance" fill="#85f1ffff" radius={[0, 4, 4, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          </div>
+        )}
 
         {/* Feature Distribution */}
         <Card className="border-[rgba(59,227,255,0.2)] bg-[rgba(8,14,28,0.7)] p-5">
