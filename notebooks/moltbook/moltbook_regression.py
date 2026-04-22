@@ -106,6 +106,7 @@ non_emb_feat_names = feat_names[non_emb_mask]
 df_imp = pd.DataFrame({'Feature': non_emb_feat_names, 'Importance': non_emb_importances})
 df_imp = df_imp.sort_values('Importance', ascending=False).head(20)
 print(df_imp)
+df_imp.to_csv("moltbook_feature_importances.csv", index=False)
 # Plot
 plt.figure(figsize=(10, 8))
 plt.barh(df_imp['Feature'][::-1], df_imp['Importance'][::-1], color='lightcoral')
