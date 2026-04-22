@@ -9,6 +9,26 @@ import {
 
 const CLUSTER_COLORS = ["#3be3ff", "#67ff9f", "#ff6fa8", "#fbbf24", "#a78bfa", "#ec4899", "#f97316", "#06b6d4", "#8b5cf6", "#14b8a6", "#f87171", "#60a5fa"];
 
+const CustomScatterTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[rgba(8,14,28,0.95)] border border-[rgba(59,227,255,0.3)] rounded-lg p-3 shadow-lg min-w-[120px]">
+        {label && <p className="text-[#3be3ff] font-bold text-xs mb-2">{label}</p>}
+        {payload.map((entry: any, index: number) => (
+          <div key={index} className="flex gap-2 text-[11px] items-center mb-1 last:mb-0">
+             <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+             <span className="font-bold text-white uppercase tracking-wider">{entry.name}:</span>
+             <span className="text-white font-mono">
+                {typeof entry.value === "number" ? entry.value.toFixed(3) : entry.value}
+             </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function FeatureMatrix() {
   const [features, setFeatures] = useState<string[]>([]);
   const [selectedFeature, setSelectedFeature] = useState("score");
@@ -144,7 +164,7 @@ export default function FeatureMatrix() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,227,255,0.1)" />
               <XAxis dataKey="center" tick={{ fill: "#8cb8cc", fontSize: 10 }} tickFormatter={(v) => v.toFixed(1)} />
               <YAxis tick={{ fill: "#8cb8cc", fontSize: 10 }} />
-              <Tooltip contentStyle={{ backgroundColor: "rgba(8,14,28,0.95)", border: "1px solid rgba(59,227,255,0.3)", borderRadius: 8, color: "#d9f7ff", fontSize: 11 }} />
+              <Tooltip contentStyle={{ backgroundColor: "rgba(8,14,28,0.95)", border: "1px solid rgba(59,227,255,0.3)", borderRadius: 8, color: "#d9f7ff", fontSize: 11 }} itemStyle={{ color: "#ffffff", fontWeight: 500 }} labelStyle={{ color: "#3be3ff", fontWeight: "bold" }} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <Bar dataKey="human" name="HUMAN" fill="#67ff9f" fillOpacity={0.7} />
               <Bar dataKey="ai" name="AI" fill="#3be3ff" fillOpacity={0.7} />
@@ -176,7 +196,7 @@ export default function FeatureMatrix() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,227,255,0.1)" />
               <XAxis dataKey={scatterX} type="number" name={scatterX} stroke="#8cb8cc" tick={{ fill: "#8cb8cc", fontSize: 10 }} />
               <YAxis dataKey={scatterY} type="number" name={scatterY} stroke="#8cb8cc" tick={{ fill: "#8cb8cc", fontSize: 10 }} />
-              <Tooltip contentStyle={{ backgroundColor: "rgba(8,14,28,0.95)", border: "1px solid rgba(59,227,255,0.3)", borderRadius: 8, color: "#d9f7ff", fontSize: 11 }} />
+              <Tooltip content={<CustomScatterTooltip />} cursor={{ strokeDasharray: '3 3' }} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <Scatter name="HUMAN" data={scatterData.filter((p: any) => p.label === 1)} fill="#67ff9f" fillOpacity={0.5} />
               <Scatter name="AI" data={scatterData.filter((p: any) => p.label === 0)} fill="#3be3ff" fillOpacity={0.5} />
@@ -279,10 +299,7 @@ export default function FeatureMatrix() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,227,255,0.1)" />
               <XAxis dataKey="pc1" type="number" name="PC1" stroke="#8cb8cc" tick={{ fill: "#8cb8cc", fontSize: 10 }} />
               <YAxis dataKey="pc2" type="number" name="PC2" stroke="#8cb8cc" tick={{ fill: "#8cb8cc", fontSize: 10 }} />
-              <Tooltip
-                contentStyle={{ backgroundColor: "rgba(8,14,28,0.95)", border: "1px solid rgba(59,227,255,0.3)", borderRadius: 8, color: "#d9f7ff", fontSize: 11 }}
-                formatter={(val: any) => [typeof val === "number" ? val.toFixed(3) : val]}
-              />
+              <Tooltip content={<CustomScatterTooltip />} cursor={{ strokeDasharray: '3 3' }} />
               <Legend wrapperStyle={{ fontSize: 10 }} />
               {Object.entries(clusterGroups).map(([clusterId, points]) => (
                 <Scatter

@@ -82,7 +82,7 @@ export default function GraphsFindings() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,227,255,0.1)" />
               <XAxis dataKey="epoch" tick={{ fill: "#8cb8cc", fontSize: 10 }} name="Epoch" />
               <YAxis domain={[0.5, 1]} tick={{ fill: "#8cb8cc", fontSize: 10 }} />
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: "#ffffff", fontWeight: 500 }} labelStyle={{ color: "#3be3ff", fontWeight: "bold" }} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <Line type="monotone" dataKey="train_acc" name="Train Acc" stroke="#3be3ff" strokeWidth={2} dot={{ r: 3 }} />
               <Line type="monotone" dataKey="val_acc" name="Val Acc" stroke="#ff6fa8" strokeWidth={2} dot={{ r: 3 }} />
@@ -96,7 +96,7 @@ export default function GraphsFindings() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,227,255,0.1)" />
               <XAxis dataKey="epoch" tick={{ fill: "#8cb8cc", fontSize: 10 }} />
               <YAxis domain={[0.5, 1]} tick={{ fill: "#8cb8cc", fontSize: 10 }} />
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: "#ffffff", fontWeight: 500 }} labelStyle={{ color: "#3be3ff", fontWeight: "bold" }} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <Line type="monotone" dataKey="train_f1" name="Train F1" stroke="#67ff9f" strokeWidth={2} dot={{ r: 3 }} />
               <Line type="monotone" dataKey="val_f1" name="Val F1" stroke="#fbbf24" strokeWidth={2} dot={{ r: 3 }} />
@@ -110,7 +110,7 @@ export default function GraphsFindings() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,227,255,0.1)" />
               <XAxis dataKey="epoch" tick={{ fill: "#8cb8cc", fontSize: 10 }} />
               <YAxis domain={[0, 1]} tick={{ fill: "#8cb8cc", fontSize: 10 }} />
-              <Tooltip contentStyle={tooltipStyle} />
+              <Tooltip contentStyle={tooltipStyle} itemStyle={{ color: "#ffffff", fontWeight: 500 }} labelStyle={{ color: "#3be3ff", fontWeight: "bold" }} />
               <Legend wrapperStyle={{ fontSize: 11 }} />
               <Line type="monotone" dataKey="train_loss" name="Train Loss" stroke="#f97316" strokeWidth={2} dot={{ r: 3 }} />
               <Line type="monotone" dataKey="val_loss" name="Val Loss" stroke="#a78bfa" strokeWidth={2} dot={{ r: 3 }} />
@@ -124,7 +124,7 @@ export default function GraphsFindings() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,227,255,0.1)" horizontal={true} vertical={false} />
               <XAxis type="number" tick={{ fill: "#8cb8cc", fontSize: 10 }} />
               <YAxis dataKey="Feature" type="category" tick={{ fill: "#8cb8cc", fontSize: 9 }} width={140} />
-              <Tooltip cursor={{ fill: "rgba(59,227,255,0.05)" }} contentStyle={tooltipStyle} />
+              <Tooltip cursor={{ fill: "rgba(59,227,255,0.05)" }} contentStyle={tooltipStyle} itemStyle={{ color: "#ffffff", fontWeight: 500 }} labelStyle={{ color: "#3be3ff", fontWeight: "bold" }} />
               <Bar dataKey="Importance" fill="#06b6d4" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -136,7 +136,7 @@ export default function GraphsFindings() {
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,227,255,0.1)" horizontal={true} vertical={false} />
               <XAxis type="number" tick={{ fill: "#8cb8cc", fontSize: 10 }} />
               <YAxis dataKey="Feature" type="category" tick={{ fill: "#8cb8cc", fontSize: 9 }} width={140} />
-              <Tooltip cursor={{ fill: "rgba(59,227,255,0.05)" }} contentStyle={tooltipStyle} />
+              <Tooltip cursor={{ fill: "rgba(59,227,255,0.05)" }} contentStyle={tooltipStyle} itemStyle={{ color: "#ffffff", fontWeight: 500 }} labelStyle={{ color: "#3be3ff", fontWeight: "bold" }} />
               <Bar dataKey="Importance" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -196,7 +196,7 @@ export default function GraphsFindings() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,227,255,0.1)" horizontal={true} vertical={false} />
                   <XAxis type="number" tick={{ fill: "#8cb8cc", fontSize: 10 }} />
                   <YAxis dataKey="Feature" type="category" tick={{ fill: "#8cb8cc", fontSize: 9 }} width={140} />
-                  <Tooltip cursor={{ fill: "rgba(59,227,255,0.05)" }} contentStyle={{ backgroundColor: "rgba(8,14,28,0.95)", border: "1px solid rgba(59,227,255,0.3)", borderRadius: 8, color: "#d9f7ff", fontSize: 11 }} />
+                  <Tooltip cursor={{ fill: "rgba(59,227,255,0.05)" }} contentStyle={{ backgroundColor: "rgba(8,14,28,0.95)", border: "1px solid rgba(59,227,255,0.3)", borderRadius: 8, color: "#d9f7ff", fontSize: 11 }} itemStyle={{ color: "#ffffff", fontWeight: 500 }} labelStyle={{ color: "#3be3ff", fontWeight: "bold" }} />
                   <Bar dataKey="Importance" fill="#f87171" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -212,7 +212,7 @@ export default function GraphsFindings() {
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(59,227,255,0.1)" horizontal={true} vertical={false} />
                   <XAxis type="number" tick={{ fill: "#8cb8cc", fontSize: 10 }} />
                   <YAxis dataKey="Feature" type="category" tick={{ fill: "#8cb8cc", fontSize: 9 }} width={140} />
-                  <Tooltip cursor={{ fill: "rgba(59,227,255,0.05)" }} contentStyle={{ backgroundColor: "rgba(8,14,28,0.95)", border: "1px solid rgba(59,227,255,0.3)", borderRadius: 8, color: "#d9f7ff", fontSize: 11 }} />
+                  <Tooltip cursor={{ fill: "rgba(59,227,255,0.05)" }} contentStyle={{ backgroundColor: "rgba(8,14,28,0.95)", border: "1px solid rgba(59,227,255,0.3)", borderRadius: 8, color: "#d9f7ff", fontSize: 11 }} itemStyle={{ color: "#ffffff", fontWeight: 500 }} labelStyle={{ color: "#3be3ff", fontWeight: "bold" }} />
                   <Bar dataKey="Importance" fill="#fbbf24" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
